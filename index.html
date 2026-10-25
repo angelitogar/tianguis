@@ -6,12 +6,14 @@
     <meta name="theme-color" content="#ffffff">
     <title>Tianguis | Comercio local</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/negocios.css">
+    <script src="js/tianguis-negocios.js" defer></script>
     <script src="js/main.js" defer></script>
 </head>
 <body>
     <header class="topbar">
-        <button class="icon-button" id="menuButton"
-                aria-label="Abrir menú" aria-expanded="false">
+        <button class="icon-button" id="menuButton" aria-label="Abrir menú"
+                aria-expanded="false">
             <span class="hamburger">☰</span>
         </button>
 
@@ -19,11 +21,9 @@
 
         <form class="search-bar" id="searchForm">
             <span class="search-icon" aria-hidden="true">⌕</span>
-            <input
-                id="searchInput"
-                type="search"
-                placeholder="Buscar negocios, productos o servicios..."
-                aria-label="Buscar negocios, productos o servicios">
+            <input id="searchInput" type="search"
+                   placeholder="Buscar negocios, productos o servicios..."
+                   aria-label="Buscar negocios, productos o servicios">
             <button type="submit" aria-label="Buscar">Buscar</button>
         </form>
 
@@ -35,11 +35,11 @@
         <div class="menu-heading">Explora Tianguis</div>
         <div id="dynamicNavLinks">
             <a href="index.html">⌂ &nbsp; Inicio / Mapa</a>
+            <a href="registrar-negocio.html">＋ &nbsp; Registrar negocio</a>
             <a href="catalogo.html">▦ &nbsp; Catálogo</a>
             <a href="carrito.html">🛒 &nbsp; Mi carrito</a>
-            <a href="denuncias.html" style="color: #c5221f; font-weight: 600;">🚨 &nbsp; Denuncia Ciudadana</a>
-            <a href="qa.html">? &nbsp; Preguntas frecuentes</a>
-            <a href="login.html" style="font-weight: bold; color: var(--primary);">🔑 &nbsp; Iniciar sesión / Registro</a>
+            <a href="valoraciones.html">★ &nbsp; Valoraciones</a>
+            <a href="login.html">🔑 &nbsp; Iniciar sesión / Registro</a>
         </div>
     </aside>
 
@@ -53,16 +53,15 @@
             <button class="filter-button" data-filter="otros" aria-pressed="false">Otros</button>
         </div>
 
-        <section class="map" id="map" aria-label="Mapa de negocios locales">
-            <div class="map-overlay" id="mapOverlay">
-                <button class="business-marker comida" data-name="Antojitos Lupita" data-category="comida" style="--x: 28%; --y: 37%;" aria-label="Antojitos Lupita">🍲</button>
-                <button class="business-marker ropa" data-name="Ropa y novedades" data-category="ropa" style="--x: 58%; --y: 52%;" aria-label="Ropa y novedades">👕</button>
-                <button class="business-marker hogar" data-name="Artículos para el hogar" data-category="hogar" style="--x: 72%; --y: 34%;" aria-label="Artículos para el hogar">🏠</button>
-                <button class="business-marker servicios" data-name="Reparaciones y servicios" data-category="servicios" style="--x: 42%; --y: 69%;" aria-label="Reparaciones y servicios">🔧</button>
-            </div>
+        <section class="map" id="map" aria-label="Mapa esquemático de negocios">
+            <div class="map-overlay" id="mapOverlay"></div>
+
+            <section id="businessPopup" class="map-business-popup" role="dialog"
+                     aria-label="Información del negocio seleccionado" hidden></section>
 
             <div class="map-controls">
-                <button id="locateButton" aria-label="Centrar mapa" title="Centrar mapa">◎</button>
+                <button id="locateButton" aria-label="Restablecer mapa"
+                        title="Restablecer mapa">◎</button>
                 <button id="zoomIn" aria-label="Acercar mapa" title="Acercar">＋</button>
                 <button id="zoomOut" aria-label="Alejar mapa" title="Alejar">−</button>
             </div>

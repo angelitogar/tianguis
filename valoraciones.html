@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoraciones | Tianguis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/negocios.css">
+    <script src="js/tianguis-negocios.js" defer></script>
+    <script src="js/valoraciones.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="index.html">Tianguis</a>
+        <nav class="topbar-links" aria-label="Navegación principal">
+            <a href="index.html">Volver al mapa</a>
+        </nav>
+    </header>
+
+    <main class="page-shell">
+        <section class="page-card">
+            <p class="eyebrow">OPINIONES DE LA COMUNIDAD</p>
+            <h1>Valoraciones</h1>
+
+            <div class="form-field">
+                <label for="businessSelect">Negocio</label>
+                <select id="businessSelect"></select>
+            </div>
+
+            <section id="reviews" aria-live="polite"></section>
+
+            <form id="ratingForm">
+                <h2>Deja tu valoración</h2>
+
+                <fieldset class="form-field">
+                    <legend>Estrellas *</legend>
+                    <div class="rating-stars">
+                        <label><input type="radio" name="stars" value="1" required> 1 ★</label>
+                        <label><input type="radio" name="stars" value="2"> 2 ★</label>
+                        <label><input type="radio" name="stars" value="3"> 3 ★</label>
+                        <label><input type="radio" name="stars" value="4"> 4 ★</label>
+                        <label><input type="radio" name="stars" value="5"> 5 ★</label>
+                    </div>
+                </fieldset>
+
+                <div class="form-field">
+                    <label for="author">Nombre (opcional)</label>
+                    <input id="author" maxlength="50">
+                </div>
+
+                <div class="form-field">
+                    <label for="comment">Comentario (opcional)</label>
+                    <textarea id="comment" maxlength="500"></textarea>
+                </div>
+
+                <div id="ratingMessage" class="status-message hidden" role="status"></div>
+
+                <div class="form-actions">
+                    <button class="primary-action" type="submit">Guardar valoración</button>
+                    <a class="secondary-action" href="index.html">Volver al mapa</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

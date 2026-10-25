@@ -1,202 +1,223 @@
-/*
-- Controla el menú, la búsqueda y los marcadores de la página principal.
-- También construye los enlaces del menú según la sesión local.
- */
+/* Menú, búsqueda, filtros y fichas emergentes del mapa. */
+(() => {
+    "use strict";
 
-const menuButton = document.getElementById("menuButton");
-const sideMenu = document.getElementById("sideMenu");
-const dynamicNavLinks = document.getElementById("dynamicNavLinks");
-const mobileSearchButton = document.getElementById("mobileSearchButton");
-const searchForm = document.getElementById("searchForm");
-const searchInput = document.getElementById("searchInput");
-const mapOverlay = document.getElementById("mapOverlay");
-const mapMessage = document.getElementById("mapMessage");
-const markers = [...document.querySelectorAll(".business-marker")];
-const filterButtons = [...document.querySelectorAll(".filter-button")];
+    const API = window.TianguisNegocios;
+    const mapa = document.getElementById("map");
+    const capa = document.getElementById("mapOverlay");
+    const ventana = document.getElementById("businessPopup");
+    const mensaje = document.getElementById("mapMessage");
+    const busqueda = document.getElementById("searchInput");
+    const botonesFiltro = [...document.querySelectorAll(".filter-button")];
 
-let activeCategory = "todos";
-let zoom = 1;
+    let categoriaActiva = "todos";
+    let negocioSeleccionado = null;
+    let zoom = 1;
 
-/*
-- Construye los enlaces comunes y los enlaces específicos del rol.
-- El registro de negocio y la denuncia ciudadana se muestran siempre.
- */
-function renderMenuByRole() {
-    if (!dynamicNavLinks) return;
-
-    let user = null;
-
-    try {
-        const sessionRaw = localStorage.getItem("tianguis_session");
-        user = sessionRaw ? JSON.parse(sessionRaw) : null;
-    } catch {
-        // Si la sesión guardada está dañada, se trata a la persona como visitante.
-        localStorage.removeItem("tianguis_session");
+    function grupoCategoria(categoria) {
+        if (["comida-preparada", "carne", "pollo", "pescado", "frutas-verduras", "cremeria"].includes(categoria)) {
+            return "comida";
+        }
+        if (categoria === "ropa") return "ropa";
+        if (categoria === "servicios") return "servicios";
+        if (categoria === "hogar") return "hogar";
+        return "otros";
     }
 
-    let html = `<a href="index.html">⌂ &nbsp; Inicio / Mapa</a>`;
-    html += `<a href="catalogo.html">▦ &nbsp; Catálogo</a>`;
-    html += `<a href="carrito.html">🛒 &nbsp; Mi carrito</a>`;
-    html += `<a href="registrar-negocio.html">＋ &nbsp; Registrar mi negocio</a>`;
-    html += `<a href="denuncias.html" style="color: #c5221f; font-weight: 600;">🚨 &nbsp; Denuncia Ciudadana</a>`;
+    function coincide(negocio, consulta) {
+        const texto = [
+            negocio.name,
+            negocio.location,
+            negocio.description,
+            API.etiquetaCategoria(negocio.category)
+        ].join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-    if (!user) {
-        html += `<a href="qa.html">? &nbsp; Preguntas frecuentes</a>`;
-        html += `<a href="login.html" style="font-weight: bold; color: var(--primary);">🔑 &nbsp; Iniciar sesión / Registro</a>`;
-    } else if (user.role === "vendedor") {
-        html += `<a href="detalles-local.html">🏪 &nbsp; Mi Local (${user.business || ""})</a>`;
-        html += `<a href="valoraciones.html">★ &nbsp; Mis Valoraciones</a>`;
-        html += `<a href="qa.html">? &nbsp; Preguntas frecuentes</a>`;
-        html += `<a href="#" id="logoutBtn" style="color: #c5221f;">🚪 &nbsp; Cerrar Sesión (${user.name || ""})</a>`;
-    } else if (user.role === "admin") {
-        html += `<a href="insights.html">▥ &nbsp; Monitoreo Insights (SEDECO)</a>`;
-        html += `<a href="valoraciones.html">★ &nbsp; Reportes y Valoraciones</a>`;
-        html += `<a href="qa.html">? &nbsp; Preguntas frecuentes</a>`;
-        html += `<a href="#" id="logoutBtn" style="color: #c5221f;">🚪 &nbsp; Cerrar Sesión (${user.name || ""})</a>`;
+        return !consulta || texto.includes(consulta);
     }
 
-    dynamicNavLinks.innerHTML = html;
+    function obtenerNegociosVisibles() {
+        const consulta = busqueda.value.trim()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-    const logoutButton = document.getElementById("logoutBtn");
+        return API.obtenerTodosLosNegocios().filter(negocio => {
+            const tienePunto = Number.isFinite(negocio.x) && Number.isFinite(negocio.y);
+            const coincideCategoria = categoriaActiva === "todos"
+                || grupoCategoria(negocio.category) === categoriaActiva;
 
-    if (logoutButton) {
-        logoutButton.addEventListener("click", event => {
-            event.preventDefault();
-            localStorage.removeItem("tianguis_session");
-            window.location.reload();
+            return tienePunto && coincideCategoria && coincide(negocio, consulta);
         });
     }
-}
 
-/*
-- Abre o cierra el menú lateral y actualiza su estado accesible.
- */
-function toggleMenu(force) {
-    const shouldOpen = typeof force === "boolean"
-        ? force
-        : !sideMenu.classList.contains("open");
+    function renderizarMarcadores() {
+        const visibles = obtenerNegociosVisibles();
+        const nombresDemo = new Set(
+            API.obtenerTodosLosNegocios()
+                .filter(negocio => negocio.isDemo)
+                .map(negocio => negocio.name.trim().toLocaleLowerCase("es"))
+        );
 
-    sideMenu.classList.toggle("open", shouldOpen);
-    sideMenu.setAttribute("aria-hidden", String(!shouldOpen));
-    menuButton.setAttribute("aria-expanded", String(shouldOpen));
-}
+        // Evita dibujar un negocio registrado encima de un marcador de demostración del mismo nombre.
+        const listaFinal = visibles.filter(negocio =>
+            negocio.isDemo || !nombresDemo.has(negocio.name.trim().toLocaleLowerCase("es"))
+        );
 
-menuButton.addEventListener("click", () => toggleMenu());
+        capa.innerHTML = listaFinal.map(negocio => {
+            const resumen = API.obtenerResumenValoraciones(negocio.id);
+            const icono = grupoCategoria(negocio.category) === "ropa"
+                ? "👕"
+                : grupoCategoria(negocio.category) === "comida"
+                    ? "🍲"
+                    : "📍";
 
-/*
-- Muestra el buscador cuando se activa el botón para pantallas estrechas.
- */
-mobileSearchButton.addEventListener("click", () => {
-    searchForm.classList.toggle("mobile-open");
+            return `
+                <button class="business-marker ${grupoCategoria(negocio.category)} ${negocioSeleccionado === negocio.id ? "selected" : ""} ${negocio.isDemo ? "" : "registered-marker"}"
+                        data-business-id="${API.escaparHTML(negocio.id)}"
+                        style="--x:${negocio.x}%;--y:${negocio.y}%"
+                        aria-label="${API.escaparHTML(negocio.name)}, ${resumen.total} valoraciones">
+                    ${icono}
+                </button>
+            `;
+        }).join("");
 
-    if (searchForm.classList.contains("mobile-open")) {
-        searchInput.focus();
+        mensaje.textContent = listaFinal.length
+            ? `${listaFinal.length} negocio(s) visible(s). Selecciona un marcador para ver su ficha.`
+            : "No hay negocios que coincidan con la búsqueda y el filtro.";
+
+        if (!listaFinal.some(negocio => negocio.id === negocioSeleccionado)) {
+            cerrarVentana();
+        }
     }
-});
 
-/*
-- Filtra los marcadores según el texto y la categoría seleccionados.
- */
-function updateMarkers() {
-    const query = searchInput.value.trim().toLocaleLowerCase("es");
-    let visibleCount = 0;
+    function colocarVentana(idNegocio) {
+        const marcador = capa.querySelector(`[data-business-id="${CSS.escape(idNegocio)}"]`);
+        if (!marcador) return;
 
-    markers.forEach(marker => {
-        const name = marker.dataset.name.toLocaleLowerCase("es");
-        const category = marker.dataset.category;
+        const mapaRect = mapa.getBoundingClientRect();
+        const marcadorRect = marcador.getBoundingClientRect();
 
-        const matchesCategory =
-            activeCategory === "todos" || category === activeCategory;
-        const matchesSearch = !query || name.includes(query);
-        const visible = matchesCategory && matchesSearch;
+        ventana.style.left = `${marcadorRect.left - mapaRect.left + marcadorRect.width / 2}px`;
+        ventana.style.top = `${Math.max(12, marcadorRect.top - mapaRect.top - 12)}px`;
+    }
 
-        marker.classList.toggle("hidden", !visible);
+    function abrirVentana(idNegocio) {
+        const negocio = API.buscarNegocio(idNegocio);
+        if (!negocio) return;
 
-        if (!visible) {
-            marker.classList.remove("selected");
-        }
+        negocioSeleccionado = negocio.id;
+        const resumen = API.obtenerResumenValoraciones(negocio.id);
+        const horario = API.textoHorario(negocio);
+        const foto = negocio.photos?.[0] || "";
+        const contacto = negocio.contact?.share && negocio.contact.value
+            ? `<p><strong>Contacto:</strong> ${API.escaparHTML(negocio.contact.method)} · ${API.escaparHTML(negocio.contact.value)}</p>`
+            : "";
 
-        if (visible) {
-            visibleCount++;
-        }
+        ventana.innerHTML = `
+            <button class="popup-close" id="closePopup" aria-label="Cerrar ficha">×</button>
+            ${foto ? `<img class="business-photo" src="${API.escaparHTML(foto)}" alt="Foto de ${API.escaparHTML(negocio.name)}">` : ""}
+            <h2>${API.escaparHTML(negocio.name)}</h2>
+            <p>${API.escaparHTML(API.etiquetaCategoria(negocio.category))}</p>
+            <p class="popup-rating">${resumen.total
+                ? `★ ${resumen.promedio.toFixed(1)} · ${resumen.total} valoración(es)`
+                : "Sin valoraciones"}</p>
+            <p><strong>Ubicación:</strong> ${API.escaparHTML(negocio.location || "Sin información")}</p>
+            ${horario ? `<p><strong>Horario:</strong> ${API.escaparHTML(horario)}</p>` : ""}
+            ${negocio.description ? `<p>${API.escaparHTML(negocio.description)}</p>` : ""}
+            ${contacto}
+            <div class="detail-actions">
+                <a class="primary-action" href="negocio.html?id=${encodeURIComponent(negocio.id)}">Ver detalles</a>
+                <a class="secondary-action" href="valoraciones.html?id=${encodeURIComponent(negocio.id)}">Valorar</a>
+            </div>
+        `;
+        ventana.hidden = false;
+        renderizarMarcadores();
+        colocarVentana(negocio.id);
+
+        document.getElementById("closePopup").addEventListener("click", cerrarVentana);
+    }
+
+    function cerrarVentana() {
+        negocioSeleccionado = null;
+        ventana.hidden = true;
+        ventana.innerHTML = "";
+        renderizarMarcadores();
+    }
+
+    capa.addEventListener("click", evento => {
+        const marcador = evento.target.closest("[data-business-id]");
+        if (marcador) abrirVentana(marcador.dataset.businessId);
     });
 
-    if (query) {
-        mapMessage.textContent = visibleCount
-            ? `${visibleCount} negocio(s) encontrado(s)`
-            : "No se encontraron negocios con esa búsqueda.";
-    } else if (activeCategory !== "todos") {
-        mapMessage.textContent = visibleCount
-            ? `${visibleCount} negocio(s) en esta categoría`
-            : "Aún no hay negocios en esta categoría.";
-    } else {
-        mapMessage.textContent = "Explora los negocios de tu comunidad";
-    }
-}
+    ventana.addEventListener("click", evento => evento.stopPropagation());
 
-/* Activa el filtro de la categoría seleccionada. */
-filterButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        activeCategory = button.dataset.filter;
+    botonesFiltro.forEach(boton => {
+        boton.addEventListener("click", () => {
+            categoriaActiva = boton.dataset.filter;
 
-        filterButtons.forEach(filter => {
-            const selected = filter === button;
-            filter.classList.toggle("active", selected);
-            filter.setAttribute("aria-pressed", String(selected));
+            botonesFiltro.forEach(item => {
+                const activo = item === boton;
+                item.classList.toggle("active", activo);
+                item.setAttribute("aria-pressed", String(activo));
+            });
+
+            renderizarMarcadores();
         });
-
-        updateMarkers();
     });
-});
 
-/* Evita que el formulario recargue la página al buscar. */
-searchForm.addEventListener("submit", event => {
-    event.preventDefault();
-    updateMarkers();
-});
-
-searchInput.addEventListener("input", updateMarkers);
-
-/* Muestra el nombre del negocio seleccionado. */
-markers.forEach(marker => {
-    marker.addEventListener("click", () => {
-        markers.forEach(item => item.classList.remove("selected"));
-        marker.classList.add("selected");
-
-        mapMessage.textContent =
-            `${marker.dataset.name} · Categoría: ${marker.dataset.category}`;
+    busqueda.addEventListener("input", renderizarMarcadores);
+    document.getElementById("searchForm").addEventListener("submit", evento => {
+        evento.preventDefault();
+        renderizarMarcadores();
     });
-});
 
-/* Controles de zoom de demostración para los marcadores. */
-document.getElementById("zoomIn").addEventListener("click", () => {
-    zoom = Math.min(zoom + 0.2, 2.2);
-    mapOverlay.style.transform = `scale(${zoom})`;
-});
+    document.getElementById("zoomIn").addEventListener("click", () => {
+        zoom = Math.min(zoom + 0.2, 2.2);
+        capa.style.transform = `scale(${zoom})`;
+        if (negocioSeleccionado) colocarVentana(negocioSeleccionado);
+    });
 
-document.getElementById("zoomOut").addEventListener("click", () => {
-    zoom = Math.max(zoom - 0.2, 0.6);
-    mapOverlay.style.transform = `scale(${zoom})`;
-});
+    document.getElementById("zoomOut").addEventListener("click", () => {
+        zoom = Math.max(zoom - 0.2, 0.6);
+        capa.style.transform = `scale(${zoom})`;
+        if (negocioSeleccionado) colocarVentana(negocioSeleccionado);
+    });
 
-document.getElementById("locateButton").addEventListener("click", () => {
-    zoom = 1;
-    mapOverlay.style.transform = "scale(1)";
-});
+    document.getElementById("locateButton").addEventListener("click", () => {
+        zoom = 1;
+        capa.style.transform = "scale(1)";
+        cerrarVentana();
+    });
 
-/* Cierra el menú si se hace clic fuera de él. */
-document.addEventListener("click", event => {
-    if (
-        sideMenu.classList.contains("open") &&
-        !sideMenu.contains(event.target) &&
-        !menuButton.contains(event.target)
-    ) {
-        toggleMenu(false);
-    }
-});
+    const menu = document.getElementById("sideMenu");
+    const menuButton = document.getElementById("menuButton");
 
-/* Inicializa menú y marcadores al cargar el documento. */
-document.addEventListener("DOMContentLoaded", () => {
-    renderMenuByRole();
-    updateMarkers();
-});
+    menuButton.addEventListener("click", () => {
+        const abierto = !menu.classList.contains("open");
+        menu.classList.toggle("open", abierto);
+        menu.setAttribute("aria-hidden", String(!abierto));
+        menuButton.setAttribute("aria-expanded", String(abierto));
+    });
+
+    document.getElementById("mobileSearchButton").addEventListener("click", () => {
+        const form = document.getElementById("searchForm");
+        form.classList.toggle("mobile-open");
+        if (form.classList.contains("mobile-open")) busqueda.focus();
+    });
+
+    document.addEventListener("click", evento => {
+        if (menu.classList.contains("open")
+            && !menu.contains(evento.target)
+            && !menuButton.contains(evento.target)) {
+            menu.classList.remove("open");
+            menu.setAttribute("aria-hidden", "true");
+            menuButton.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    document.addEventListener("keydown", evento => {
+        if (evento.key === "Escape") cerrarVentana();
+    });
+
+    window.addEventListener("storage", renderizarMarcadores);
+
+    renderizarMarcadores();
+})();
