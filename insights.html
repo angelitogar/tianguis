@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#176b52">
+    <title>Insights | Tianguis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/insights.css">
+    <script src="js/tianguis-negocios.js" defer></script>
+    <script src="js/insights.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="index.html">ConecTianguis</a>
+        <nav class="topbar-nav" aria-label="Navegación principal">
+            <a href="index.html">Mapa</a>
+            <a href="catalogo.html">Catálogo</a>
+            <a href="denuncias.html">Denuncias</a>
+        </nav>
+    </header>
+
+    <main class="insights-shell">
+        <section class="dashboard-heading">
+            <div>
+                <p class="eyebrow">ANÁLISIS DE COMERCIO LOCAL</p>
+                <h1>Insights de Tianguis</h1>
+                <p>Resumen del catálogo, la red de mercados y un escenario de derrama económica.</p>
+            </div>
+            <div class="data-status"><span class="status-dot"></span> Datos locales · <span id="dataStatus">Cargando…</span></div>
+        </section>
+
+        <div id="dashboardError" class="dashboard-error hidden" role="alert"></div>
+
+        <section class="kpi-grid" aria-label="Indicadores principales">
+            <article class="kpi-card">
+                <span class="kpi-icon green">🏪</span>
+                <div><p>Mercados</p><strong id="kpiMarkets">—</strong><small id="kpiMarketsDetail">en la red</small></div>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-icon blue">📦</span>
+                <div><p>Productos</p><strong id="kpiProducts">—</strong><small id="kpiProductsDetail">en catálogo</small></div>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-icon orange">🧺</span>
+                <div><p>Negocios</p><strong id="kpiBusinesses">—</strong><small id="kpiBusinessesDetail">registrados</small></div>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-icon purple">💰</span>
+                <div><p>Valor publicado</p><strong id="kpiListedValue">—</strong><small>precios conocidos · no son ventas</small></div>
+            </article>
+        </section>
+
+        <section class="panel network-panel" aria-labelledby="networkTitle">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">GRAFO DE RELACIONES</p>
+                    <h2 id="networkTitle">Red de mercados</h2>
+                    <p>Nodos: mercados · enlaces: sectores compartidos · peso: negocios y productos de esos sectores.</p>
+                </div>
+                <div class="network-legend"><span class="legend-node"></span> Mercado <span class="legend-line"></span> Relación por sector</div>
+            </div>
+            <div class="network-layout">
+                <div class="network-canvas-wrap">
+                    <svg id="networkGraph" class="network-canvas" role="img" aria-label="Red ponderada de mercados"></svg>
+                </div>
+                <aside class="network-insights">
+                    <article class="insight-tile">
+                        <span class="tile-label">Conexiones</span>
+                        <strong id="networkEdges">—</strong>
+                        <small>pares de mercados con sectores compartidos</small>
+                    </article>
+                    <article class="insight-tile">
+                        <span class="tile-label">Ciclos</span>
+                        <strong id="networkCycles">—</strong>
+                        <small>ciclos triangulares de 3 mercados</small>
+                    </article>
+                    <article class="insight-tile">
+                        <span class="tile-label">Conexión más fuerte</span>
+                        <strong id="strongestLink">—</strong>
+                        <small id="strongestLinkDetail">mayor peso compartido</small>
+                    </article>
+                </aside>
+            </div>
+            <div class="route-tools">
+                <div class="field">
+                    <label for="routeOrigin">Origen</label>
+                    <select id="routeOrigin"></select>
+                </div>
+                <span class="route-arrow" aria-hidden="true">→</span>
+                <div class="field">
+                    <label for="routeDestination">Destino</label>
+                    <select id="routeDestination"></select>
+                </div>
+                <output id="routeResult" class="route-result" aria-live="polite">Calculando ruta…</output>
+            </div>
+            <p class="method-note">El peso de cada enlace es el número de puestos de ambos mercados en giros compartidos. La distancia usa coordenadas esquemáticas (unidades relativas), no kilómetros ni rutas viales. La ruta minimiza esa distancia dentro de la red de giros compartidos.</p>
+        </section>
+
+        <section class="analysis-grid">
+            <article class="panel chart-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">COMPOSICIÓN DEL CATÁLOGO</p>
+                        <h2>Productos por categoría</h2>
+                    </div>
+                    <span class="panel-badge">Inventario publicado</span>
+                </div>
+                <div id="categoryChart" class="category-chart" role="img" aria-label="Conteo de productos por categoría"></div>
+            </article>
+
+            <article class="panel economic-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">ESCENARIO REFERENCIAL</p>
+                        <h2>Derrama económica estimada</h2>
+                    </div>
+                    <span class="panel-badge estimate-badge">No son ventas reales</span>
+                </div>
+                <label class="assumption-control" for="dailyUnits">
+                    <span>Unidades vendidas por producto al día</span>
+                    <input id="dailyUnits" type="number" min="0" max="10000" step="1" value="5">
+                </label>
+                <div class="economic-total">
+                    <span>Escenario diario</span>
+                    <strong id="dailyEstimate">—</strong>
+                </div>
+                <div class="economic-periods">
+                    <div><span>7 días</span><strong id="weeklyEstimate">—</strong></div>
+                    <div><span>30 días</span><strong id="monthlyEstimate">—</strong></div>
+                </div>
+                <div class="economic-footnote">
+                    <span id="pricedProductsNote">—</span>
+                    <p>Fórmula: suma de precios de catálogo conocidos × unidades asumidas por día × días. Excluye productos sin precio y no considera inventario, costos, impuestos ni transacciones observadas.</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel market-table-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">COMPARATIVO</p>
+                    <h2>Actividad por mercado</h2>
+                </div>
+                <span class="panel-badge">Ordenado por productos</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Mercado</th>
+                            <th scope="col">Negocios</th>
+                            <th scope="col">Productos</th>
+                            <th scope="col">Categorías</th>
+                            <th scope="col">Valor publicado*</th>
+                            <th scope="col">Escenario diario*</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marketTableBody"></tbody>
+                </table>
+            </div>
+            <p class="table-footnote">*Valor publicado y escenario son referencias calculadas con precios listados y el supuesto diario elegido; no representan ingresos comprobados.</p>
+        </section>
+
+        <section class="panel complaint-panel" aria-labelledby="complaintsTitle">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">REPORTES CIUDADANOS</p>
+                    <h2 id="complaintsTitle">Insights de denuncias</h2>
+                    <p>Conteos de reportes registrados; no indican resolución ni validación de los hechos.</p>
+                </div>
+                <a class="panel-badge complaint-link" href="denuncias.html">Ver denuncias</a>
+            </div>
+            <div class="complaint-summary">
+                <article class="insight-tile">
+                    <span class="tile-label">Denuncias registradas</span>
+                    <strong id="complaintTotal">—</strong>
+                    <small id="complaintTotalDetail">—</small>
+                </article>
+                <article class="insight-tile">
+                    <span class="tile-label">Motivo más reportado</span>
+                    <strong id="complaintTopType">—</strong>
+                    <small id="complaintTopTypeDetail">—</small>
+                </article>
+                <article class="insight-tile">
+                    <span class="tile-label">Mercado con más reportes</span>
+                    <strong id="complaintTopMarket">—</strong>
+                    <small id="complaintTopMarketDetail">—</small>
+                </article>
+            </div>
+            <div class="complaint-analysis-grid">
+                <div>
+                    <h3>Denuncias por motivo</h3>
+                    <div id="complaintTypeChart" class="category-chart" role="img" aria-label="Conteo de denuncias por motivo"></div>
+                </div>
+                <div>
+                    <h3>Denuncias por mercado</h3>
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Mercado</th>
+                                    <th scope="col">Reportes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="complaintMarketTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="dashboard-footer">
+            <span>Fuente: catálogo local de demostración de Tianguis.</span>
+            <span id="updatedAt">—</span>
+        </footer>
+    </main>
+</body>
+</html>

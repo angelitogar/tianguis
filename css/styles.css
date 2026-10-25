@@ -165,6 +165,29 @@ button {
     background: var(--primary-light);
 }
 
+.side-menu .side-menu-report-link {
+    display: grid;
+    gap: 5px;
+    margin-top: 10px;
+    border: 1px solid #f0d1cb;
+    color: #9f3026;
+    background: #fff7f5;
+    font-weight: 700;
+}
+
+.side-menu .side-menu-report-link:hover {
+    color: #85271f;
+    background: #ffefeb;
+}
+
+.side-menu-report-link small {
+    padding-left: 28px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
 .map-container {
     position: relative;
     height: calc(100dvh - 76px);

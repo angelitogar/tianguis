@@ -3,14 +3,15 @@
     "use strict";
 
     const API = window.TianguisNegocios;
+    const DB = window.TianguisDB;
     const SESSION_KEY = "tianguis_session";
 
     function leerUsuarios() {
-        return API.obtenerTabla("users");
+        return DB.obtenerTabla("users");
     }
 
     function guardarUsuarios(usuarios) {
-        API.guardarTabla("users", usuarios);
+        DB.guardarTabla("users", usuarios);
     }
 
     function guardarSesion(usuario) {
@@ -22,6 +23,10 @@
             tianguis: usuario.tianguis || "",
             marketId: usuario.marketId || ""
         }));
+    }
+
+    function normalizarUsuario(username) {
+        return API.normalizarNombreUsuario(username);
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -45,8 +50,19 @@
         const groupTianguis = document.getElementById("groupTianguis");
         const roleBadge = document.getElementById("roleBadge");
         const marketSelect = document.getElementById("regTianguis");
+        const businessInput = document.getElementById("regBusiness");
+        const nameInput = document.getElementById("regName");
+        const usernameInput = document.getElementById("regUser");
+        const passwordInput = document.getElementById("regPassword");
+        const loginUserInput = document.getElementById("loginUser");
+        const loginPasswordInput = document.getElementById("loginPassword");
+        const loginRoleSelect = document.getElementById("loginRole");
+        const demoAdminButton = document.getElementById("demoAdminBtn");
+        const demoVendorButton = document.getElementById("demoVendorBtn");
+        const demoButtons = [demoAdminButton, demoVendorButton];
+        let redirecting = false;
 
-        API.obtenerTabla("markets").forEach(mercado => {
+        DB.obtenerTabla("markets").forEach(mercado => {
             marketSelect.appendChild(new Option(mercado.name, mercado.id));
         });
 
@@ -58,6 +74,52 @@
         function ocultarAlerta() {
             authAlert.textContent = "";
             authAlert.className = "auth-alert hidden";
+        }
+
+        function cambiarEstadoFormulario() {
+            const esAdmin = regRole.value === "admin";
+            groupBusinessName.style.display = esAdmin ? "none" : "flex";
+            groupTianguis.style.display = esAdmin ? "none" : "flex";
+            businessInput.required = !esAdmin;
+            marketSelect.required = !esAdmin;
+            businessInput.disabled = esAdmin;
+            marketSelect.disabled = esAdmin;
+            roleBadge.textContent = esAdmin ? "Modo Autoridad" : "Modo Comerciante";
+        }
+
+        function entrar(usuario, mensaje) {
+            if (redirecting) return;
+            redirecting = true;
+            demoButtons.forEach(button => {
+                button.disabled = true;
+            });
+            guardarSesion(usuario);
+            mostrarAlerta(mensaje, "success");
+            window.setTimeout(() => {
+                window.location.href = usuario.role === "admin"
+                    ? "insights.html"
+                    : "detalles-local.html";
+            }, 400);
+        }
+
+        function accederDemo(username, role) {
+            try {
+                const usuario = leerUsuarios().find(item =>
+                    normalizarUsuario(item.username) === normalizarUsuario(username) &&
+                    item.role === role
+                );
+                if (!usuario) {
+                    mostrarAlerta(
+                        "No se encontró la cuenta de demostración. Revisa que los datos estén inicializados.",
+                        "error"
+                    );
+                    return;
+                }
+
+                entrar(usuario, `Acceso de demostración como ${role === "admin" ? "autoridad" : "vendedor"}.`);
+            } catch (error) {
+                mostrarAlerta(`No se pudo iniciar la sesión de demostración: ${error.message}`, "error");
+            }
         }
 
         tabLogin.addEventListener("click", () => {
@@ -84,12 +146,8 @@
             ocultarAlerta();
         });
 
-        regRole.addEventListener("change", () => {
-            const esAdmin = regRole.value === "admin";
-            groupBusinessName.style.display = esAdmin ? "none" : "flex";
-            groupTianguis.style.display = esAdmin ? "none" : "flex";
-            roleBadge.textContent = esAdmin ? "Modo Autoridad" : "Modo Comerciante";
-        });
+        regRole.addEventListener("change", cambiarEstadoFormulario);
+        cambiarEstadoFormulario();
 
         loginForm.addEventListener("submit", evento => {
             evento.preventDefault();
@@ -98,9 +156,15 @@
             const contrasena = document.getElementById("loginPassword").value;
             const rol = document.getElementById("loginRole").value;
 
-            const usuario = leerUsuarios().find(item =>
-                item.username.toLowerCase() === usuarioIngresado.toLowerCase()
-            );
+            let usuario;
+            try {
+                usuario = leerUsuarios().find(item =>
+                    normalizarUsuario(item.username) === normalizarUsuario(usuarioIngresado)
+                );
+            } catch (error) {
+                mostrarAlerta(`No se pudo consultar la base de datos: ${error.message}`, "error");
+                return;
+            }
 
             if (!usuario) {
                 mostrarAlerta("El usuario no existe en este navegador.", "error");
@@ -117,14 +181,7 @@
                 return;
             }
 
-            guardarSesion(usuario);
-            mostrarAlerta(`¡Hola ${usuario.name}!`, "success");
-
-            setTimeout(() => {
-                window.location.href = usuario.role === "admin"
-                    ? "insights.html"
-                    : "detalles-local.html";
-            }, 500);
+            entrar(usuario, `¡Hola ${usuario.name}!`);
         });
 
         registerForm.addEventListener("submit", evento => {
@@ -132,30 +189,43 @@
 
             const role = regRole.value;
             const name = document.getElementById("regName").value.trim();
-            const business = document.getElementById("regBusiness").value.trim();
+            const business = businessInput.value.trim();
             const tianguis = document.getElementById("regTianguis").value;
-            const username = document.getElementById("regUser").value.trim();
-            const password = document.getElementById("regPassword").value;
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
 
-            if (role === "vendedor" && !tianguis) {
-                mostrarAlerta("Selecciona el tianguis o mercado donde vendes.", "error");
+            if (!name || !username || !password) {
+                mostrarAlerta("Completa tu nombre, usuario y contraseña.", "error");
                 return;
             }
 
-            const usuarios = leerUsuarios();
+            if (role === "vendedor" && (!business || !tianguis)) {
+                mostrarAlerta("Escribe el nombre de tu negocio y selecciona el mercado donde vendes.", "error");
+                return;
+            }
+
+            let usuarios;
+            let mercado;
+            try {
+                usuarios = leerUsuarios();
+                mercado = DB.obtenerTabla("markets").find(item => item.id === tianguis);
+            } catch (error) {
+                mostrarAlerta(`No se pudieron cargar los datos de registro: ${error.message}`, "error");
+                return;
+            }
+
+            if (role === "vendedor" && !mercado) {
+                mostrarAlerta("El mercado seleccionado ya no existe. Vuelve a elegirlo.", "error");
+                return;
+            }
+
             if (usuarios.some(usuario =>
-                usuario.username.toLowerCase() === username.toLowerCase()
+                normalizarUsuario(usuario.username) === normalizarUsuario(username)
             )) {
                 mostrarAlerta("Ese nombre de usuario ya está registrado.", "error");
                 return;
             }
 
-            if (!username || !password || !name) {
-                mostrarAlerta("Completa todos los campos obligatorios.", "error");
-                return;
-            }
-
-            const mercado = API.obtenerTabla("markets").find(item => item.id === tianguis);
             const nuevoUsuario = {
                 username,
                 password,
@@ -169,31 +239,46 @@
             try {
                 usuarios.push(nuevoUsuario);
                 guardarUsuarios(usuarios);
-                guardarSesion(nuevoUsuario);
-                mostrarAlerta("Cuenta creada. Redirigiendo…", "success");
 
-                setTimeout(() => {
+                if (role === "vendedor") {
+                    API.guardarNegocio({
+                        id: API.crearId(),
+                        name: business,
+                        category: "otro",
+                        location: mercado.reference || mercado.name,
+                        marketId: mercado.id,
+                        schedule: mercado.schedule || "",
+                        description: "",
+                        parking: "",
+                        photos: [],
+                        contact: { method: "", value: "", share: false },
+                        ownerUsername: normalizarUsuario(username),
+                        x: mercado.x,
+                        y: mercado.y,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    });
+                }
+
+                guardarSesion(nuevoUsuario);
+                redirecting = true;
+                mostrarAlerta("Cuenta creada y guardada. Redirigiendo…", "success");
+                window.setTimeout(() => {
                     window.location.href = role === "admin"
                         ? "insights.html"
                         : "detalles-local.html";
-                }, 500);
-            } catch {
-                mostrarAlerta("No se pudo guardar la cuenta en este navegador.", "error");
+                }, 400);
+            } catch (error) {
+                mostrarAlerta(`No se pudo completar el registro: ${error.message}`, "error");
             }
         });
 
-        document.getElementById("demoAdminBtn").addEventListener("click", () => {
-            document.getElementById("loginUser").value = "admin_sedeco";
-            document.getElementById("loginPassword").value = "123";
-            document.getElementById("loginRole").value = "admin";
-            mostrarAlerta("Credenciales de demostración listas.", "success");
+        demoAdminButton.addEventListener("click", () => {
+            accederDemo("admin_sedeco", "admin");
         });
 
-        document.getElementById("demoVendorBtn").addEventListener("click", () => {
-            document.getElementById("loginUser").value = "lupita_antojitos";
-            document.getElementById("loginPassword").value = "123";
-            document.getElementById("loginRole").value = "vendedor";
-            mostrarAlerta("Credenciales de demostración listas.", "success");
+        demoVendorButton.addEventListener("click", () => {
+            accederDemo("lupita_antojitos", "vendedor");
         });
     });
 })();
