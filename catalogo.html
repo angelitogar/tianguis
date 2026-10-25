@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#176b52">
+    <title>Catálogo | Tianguis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/catalogo.css">
+    <script src="js/catalogo.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <button class="icon-button" id="menuButton" aria-label="Abrir menú" aria-expanded="false">
+            <span class="hamburger">☰</span>
+        </button>
+
+        <a class="brand" href="index.html">Tianguis</a>
+
+        <form class="search-bar" id="searchForm">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+                id="searchInput"
+                type="search"
+                placeholder="Buscar productos en el catálogo..."
+                aria-label="Buscar productos">
+            <button type="submit" aria-label="Buscar">Buscar</button>
+        </form>
+
+        <button class="icon-button mobile-search" id="mobileSearchButton" aria-label="Mostrar búsqueda">⌕</button>
+    </header>
+
+    <aside class="side-menu" id="sideMenu" aria-hidden="true">
+        <div class="menu-heading">Explora Tianguis</div>
+        <div id="dynamicNavLinks"></div>
+    </aside>
+
+    <main class="catalogo-container">
+        <!-- Encabezado -->
+        <section class="catalogo-header">
+            <div class="header-text">
+                <h1>Catálogo de Productos</h1>
+                <p>Explora la oferta de los mercados públicos y tianguis de la Ciudad de México.</p>
+            </div>
+            <div id="vendorStatusBadge" class="vendor-badge hidden">
+                <span>🏪 Panel de Vendedor Activo</span>
+            </div>
+        </section>
+
+        <!-- Panel de Registro de Producto (Exclusivo Vendedores) -->
+        <section id="vendorPanel" class="vendor-panel hidden">
+            <div class="panel-header">
+                <h2>➕ Agregar Producto a mi Catálogo</h2>
+                <p>Publica tus artículos para que los compradores puedan agregarlos a sus listas de compra.</p>
+            </div>
+            <form id="addProductForm" class="add-product-form">
+                <div class="form-grid">
+                    <div class="form-group span-2">
+                        <label for="prodName">Nombre del producto *</label>
+                        <input type="text" id="prodName" placeholder="Ej. Tacos de Suadero, Blusa Bordada, Manzana Criolla" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prodCategory">Categoría *</label>
+                        <select id="prodCategory" required>
+                            <option value="" disabled selected>Selecciona una categoría...</option>
+                            <option value="Ropa">♧ Ropa</option>
+                            <option value="Comida preparada">🍲 Comida preparada</option>
+                            <option value="Carne / Pollo / Pescado crudo">🥩 Carne / Pollo / Pescado crudo</option>
+                            <option value="Fruta / verdura">🍎 Fruta / verdura</option>
+                            <option value="Juguetes">🧸 Juguetes</option>
+                            <option value="Cremería">🧀 Cremería</option>
+                            <option value="Libros">📚 Libros</option>
+                            <option value="Tiendas de catálogo">📖 Tiendas de catálogo</option>
+                            <option value="Electrónica">🔌 Electrónica</option>
+                            <option value="Antigüedad">🏺 Antigüedad</option>
+                            <option value="Otros">📦 Otros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prodPrice">Precio ($ MXN) <span class="optional-tag">(Opcional)</span></label>
+                        <input type="number" id="prodPrice" step="0.50" min="0" placeholder="Ej. 45.00 (dejar vacío si es a tratar)">
+                    </div>
+
+                    <div class="form-group span-2">
+                        <label for="prodDescription">Descripción o detalles</label>
+                        <textarea id="prodDescription" rows="2" placeholder="Ej. Talla M, recién horneado, hecho a mano..."></textarea>
+                    </div>
+
+                    <div class="form-group span-2">
+                        <label for="prodImage">Fotografía del producto</label>
+                        <input type="file" id="prodImage" accept="image/*">
+                        <div id="imagePreviewContainer" class="image-preview-container hidden">
+                            <img id="imagePreview" src="" alt="Vista previa">
+                            <button type="button" id="removeImgBtn" class="btn-remove-img">✕ Eliminar foto</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit-prod">🚀 Publicar Producto</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Filtros de las 11 Categorías -->
+        <section class="category-filters-wrapper">
+            <div class="category-title">Categorías:</div>
+            <div class="category-pills" id="categoryPills">
+                <button class="pill active" data-category="todos">Todos</button>
+                <button class="pill" data-category="Ropa">♧ Ropa</button>
+                <button class="pill" data-category="Comida preparada">🍲 Comida preparada</button>
+                <button class="pill" data-category="Carne / Pollo / Pescado crudo">🥩 Carne/Pollo/Pescado</button>
+                <button class="pill" data-category="Fruta / verdura">🍎 Fruta/Verdura</button>
+                <button class="pill" data-category="Juguetes">🧸 Juguetes</button>
+                <button class="pill" data-category="Cremería">🧀 Cremería</button>
+                <button class="pill" data-category="Libros">📚 Libros</button>
+                <button class="pill" data-category="Tiendas de catálogo">📖 Tiendas de catálogo</button>
+                <button class="pill" data-category="Electrónica">🔌 Electrónica</button>
+                <button class="pill" data-category="Antigüedad">🏺 Antigüedad</button>
+                <button class="pill" data-category="Otros">📦 Otros</button>
+            </div>
+        </section>
+
+        <div class="results-meta">
+            <span id="resultsCount">Cargando productos...</span>
+            <button id="btnOnlyMyProducts" class="btn-filter-mine hidden">👤 Ver solo mis productos</button>
+        </div>
+
+        <!-- Grid de Productos -->
+        <section class="products-grid" id="productsGrid"></section>
+    </main>
+</body>
+</html>
