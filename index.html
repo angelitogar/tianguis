@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>Tianguis | Comercio local</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/main.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <button class="icon-button" id="menuButton"
+                aria-label="Abrir menú" aria-expanded="false">
+            <span class="hamburger">☰</span>
+        </button>
+
+        <a class="brand" href="index.html">Tianguis</a>
+
+        <form class="search-bar" id="searchForm">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+                id="searchInput"
+                type="search"
+                placeholder="Buscar negocios, productos o servicios..."
+                aria-label="Buscar negocios, productos o servicios">
+            <button type="submit" aria-label="Buscar">Buscar</button>
+        </form>
+
+        <button class="icon-button mobile-search" id="mobileSearchButton"
+                aria-label="Mostrar búsqueda">⌕</button>
+    </header>
+
+    <aside class="side-menu" id="sideMenu" aria-hidden="true">
+        <div class="menu-heading">Explora Tianguis</div>
+        <a href="index.html">⌂ &nbsp; Inicio / Mapa</a>
+        <a href="registrar-negocio.html">＋ &nbsp; Registrar negocio</a>
+        <a href="login.html">♙ &nbsp; Iniciar sesión</a>
+        <a href="catalogo.html">▦ &nbsp; Catálogo</a>
+        <a href="carrito.html">🛒 &nbsp; Mi carrito</a>
+        <a href="valoraciones.html">★ &nbsp; Valoraciones</a>
+        <a href="insights.html">▥ &nbsp; Insights</a>
+        <a href="qa.html">? &nbsp; Preguntas frecuentes</a>
+    </aside>
+
+    <main class="map-container">
+        <div class="filters" aria-label="Filtros de negocios">
+            <button class="filter-button active" data-filter="todos"
+                    aria-pressed="true">Todos</button>
+            <button class="filter-button" data-filter="comida"
+                    aria-pressed="false">🍲 Comida</button>
+            <button class="filter-button" data-filter="ropa"
+                    aria-pressed="false">♧ Ropa</button>
+            <button class="filter-button" data-filter="hogar"
+                    aria-pressed="false">⌂ Hogar</button>
+            <button class="filter-button" data-filter="servicios"
+                    aria-pressed="false">⚙ Servicios</button>
+            <button class="filter-button" data-filter="otros"
+                    aria-pressed="false">Otros</button>
+        </div>
+
+        <section class="map" id="map" aria-label="Mapa de negocios locales">
+            <div class="map-overlay" id="mapOverlay">
+                <button class="business-marker comida"
+                        data-name="Antojitos Lupita"
+                        data-category="comida"
+                        style="--x: 28%; --y: 37%;"
+                        aria-label="Antojitos Lupita">
+                    🍲
+                </button>
+
+                <button class="business-marker ropa"
+                        data-name="Ropa y novedades"
+                        data-category="ropa"
+                        style="--x: 58%; --y: 52%;"
+                        aria-label="Ropa y novedades">
+                    👕
+                </button>
+
+                <button class="business-marker hogar"
+                        data-name="Artículos para el hogar"
+                        data-category="hogar"
+                        style="--x: 72%; --y: 34%;"
+                        aria-label="Artículos para el hogar">
+                    🏠
+                </button>
+
+                <button class="business-marker servicios"
+                        data-name="Reparaciones y servicios"
+                        data-category="servicios"
+                        style="--x: 42%; --y: 69%;"
+                        aria-label="Reparaciones y servicios">
+                    🔧
+                </button>
+            </div>
+
+            <div class="map-controls">
+                <button id="locateButton" aria-label="Centrar mapa"
+                        title="Centrar mapa">◎</button>
+                <button id="zoomIn" aria-label="Acercar mapa"
+                        title="Acercar">＋</button>
+                <button id="zoomOut" aria-label="Alejar mapa"
+                        title="Alejar">−</button>
+            </div>
+
+            <div class="map-message" id="mapMessage" role="status"
+                 aria-live="polite">
+                Explora los negocios de tu comunidad
+            </div>
+        </section>
+    </main>
+</body>
+</html>
