@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Ajusta la página al ancho de la pantalla del dispositivo. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="theme-color" content="#176b52">
+    <title>Mi lista de compras | Tianguis</title>
+
+    <!-- La hoja de estilos del carrito está dentro de la carpeta css. -->
+    <link rel="stylesheet" href="css/carrito.css">
+
+    <!-- Los datos de ejemplo deben cargarse antes del código del carrito. -->
+    <script src="js/tianguis-demo.js" defer></script>
+    <script src="js/carrito.js" defer></script>
+</head>
+<body>
+    <header class="encabezado">
+        <a class="marca" href="index.html">Tianguis</a>
+
+        <nav aria-label="Navegación principal">
+            <a href="index.html">Volver al mapa</a>
+        </nav>
+    </header>
+
+    <main class="distribucion">
+        <section class="panel" aria-labelledby="tituloPagina">
+            <p class="etiqueta">COMPRA EN TU BARRIO</p>
+            <h1 id="tituloPagina">Mi lista de compras</h1>
+            <p class="introduccion">
+                Anota lo que necesitas y consulta qué tianguis reportan ofrecerlo.
+            </p>
+
+            <form id="formularioProducto" class="formulario">
+                <label for="nombreProducto">Producto</label>
+                <input
+                    id="nombreProducto"
+                    name="producto"
+                    type="text"
+                    maxlength="80"
+                    list="sugerenciasProductos"
+                    placeholder="Por ejemplo: jitomate"
+                    autocomplete="off"
+                    required>
+                <datalist id="sugerenciasProductos"></datalist>
+
+                <div class="camposCantidad">
+                    <label for="cantidadProducto">
+                        Cantidad
+                        <input
+                            id="cantidadProducto"
+                            name="cantidad"
+                            type="number"
+                            min="0.01"
+                            max="9999"
+                            step="0.01"
+                            value="1"
+                            required>
+                    </label>
+
+                    <label for="unidadProducto">
+                        Unidad
+                        <select id="unidadProducto" name="unidad">
+                            <option value="kg">kg</option>
+                            <option value="pieza">pieza</option>
+                            <option value="litro">litro</option>
+                            <option value="manojo">manojo</option>
+                            <option value="paquete">paquete</option>
+                        </select>
+                    </label>
+                </div>
+
+                <button class="botonPrincipal" type="submit">
+                    Agregar a mi lista
+                </button>
+            </form>
+
+            <!-- Los mensajes informan si la lista se pudo guardar. -->
+            <p id="avisoAlmacenamiento" class="aviso" role="status"></p>
+
+            <div class="tituloLista">
+                <h2>Lo que necesito</h2>
+                <button id="vaciarLista" class="botonSecundario" type="button">
+                    Vaciar lista
+                </button>
+            </div>
+
+            <ul id="listaProductos" class="listaProductos"></ul>
+            <p id="resumenLista" class="resumen" aria-live="polite"></p>
+
+            <div class="tituloLista">
+                <h2>Tianguis cercanos</h2>
+            </div>
+
+            <p class="nota">
+                Los resultados son datos de demostración. La oferta reportada no
+                garantiza que el producto siga disponible ni que alcance para
+                la cantidad solicitada.
+            </p>
+
+            <label class="filtro" for="filtroCategoria">
+                Categoría
+                <select id="filtroCategoria">
+                    <option value="todos">Todas</option>
+                    <option value="comida">Comida y alimentos</option>
+                    <option value="ropa">Ropa</option>
+                    <option value="hogar">Hogar</option>
+                    <option value="servicios">Servicios</option>
+                </select>
+            </label>
+
+            <div id="resultadosTianguis" class="resultados"></div>
+        </section>
+
+        <section class="seccionMapa" aria-labelledby="tituloMapa">
+            <div class="encabezadoMapa">
+                <h2 id="tituloMapa">Tianguis en el mapa</h2>
+                <p>
+                    Esquema de demostración. Los puntos no representan
+                    ubicaciones verificadas.
+                </p>
+            </div>
+
+            <div id="mapa" class="mapa" aria-label="Mapa esquemático de tianguis">
+                <div id="marcadores" class="marcadores"></div>
+
+                <p id="mensajeMapa" class="mensajeMapa" role="status" aria-live="polite">
+                    Agrega productos para comparar los tianguis.
+                </p>
+
+                <!-- Este panel muestra la oferta del tianguis seleccionado. -->
+                <aside
+                    id="detalleTianguis"
+                    class="detalleTianguis"
+                    aria-label="Detalle del tianguis seleccionado"
+                    hidden>
+                </aside>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
