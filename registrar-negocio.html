@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#176b52">
+    <title>Registrar negocio | Tianguis</title>
+
+    <!-- Estilos generales y estilos propios del formulario. -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/registrar-negocio.css">
+
+    <!-- El JavaScript se ejecuta cuando el HTML ya está disponible. -->
+    <script src="js/registrar-negocio.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="index.html">Tianguis</a>
+
+        <div class="topbar-right">
+            <a href="index.html" class="btn-secondary-link">← Volver al mapa</a>
+        </div>
+    </header>
+
+    <main class="registro-container">
+        <section class="registro-card" aria-labelledby="tituloRegistro">
+            <p class="registro-etiqueta">COMERCIO LOCAL</p>
+            <h1 id="tituloRegistro">Registra tu negocio</h1>
+            <p class="registro-introduccion">
+                Comparte información de tu puesto o negocio para que otras personas
+                puedan encontrarlo.
+            </p>
+            <p class="mensaje-sin-cuenta">
+                No necesitas crear una cuenta ni iniciar sesión.
+            </p>
+
+            <form id="formularioNegocio">
+                <div class="campo">
+                    <label for="nombreNegocio">Nombre del negocio o puesto *</label>
+                    <input
+                        id="nombreNegocio"
+                        name="nombre"
+                        type="text"
+                        maxlength="100"
+                        placeholder="Ej. Verduras Lupita"
+                        required>
+                </div>
+
+                <div class="rejillaCampos">
+                    <div class="campo">
+                        <label for="tipoNegocio">Tipo de lugar *</label>
+                        <select id="tipoNegocio" name="tipo" required>
+                            <option value="">Selecciona una opción</option>
+                            <option value="tianguis">Puesto de tianguis</option>
+                            <option value="mercado">Local de mercado</option>
+                            <option value="barrio">Negocio de barrio</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="categoriaNegocio">Giro o tipo de producto *</label>
+                        <select id="categoriaNegocio" name="categoria" required>
+                            <option value="">Selecciona una categoría</option>
+                            <option value="ropa">Ropa</option>
+                            <option value="comida-preparada">Comida preparada</option>
+                            <option value="carne">Carne</option>
+                            <option value="pollo">Pollo</option>
+                            <option value="pescado">Pescado</option>
+                            <option value="frutas-verduras">Fruta y verdura</option>
+                            <option value="cremeria">Cremería</option>
+                            <option value="libros">Libros</option>
+                            <option value="tiendas-catalogo">Tiendas de catálogo</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="campo">
+                    <label for="nombreTianguis">Nombre del tianguis o mercado</label>
+                    <input
+                        id="nombreTianguis"
+                        name="nombreTianguis"
+                        type="text"
+                        maxlength="120"
+                        placeholder="Si aplica, escribe el nombre del lugar">
+                </div>
+
+                <div class="campo">
+                    <label for="descripcionNegocio">
+                        Descripción breve <span>(opcional)</span>
+                    </label>
+                    <textarea
+                        id="descripcionNegocio"
+                        name="descripcion"
+                        rows="3"
+                        maxlength="240"
+                        placeholder="¿Qué vendes o qué servicio ofreces?"></textarea>
+                    <small id="contadorDescripcion">0 de 240 caracteres</small>
+                </div>
+
+                <fieldset class="grupoOpcional">
+                    <legend>Contacto del negocio <span>(opcional)</span></legend>
+
+                    <div class="rejillaCampos">
+                        <div class="campo">
+                            <label for="medioContacto">¿Cómo pueden contactarte?</label>
+                            <select id="medioContacto" name="medioContacto">
+                                <option value="">No compartir contacto</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="llamada">Llamada telefónica</option>
+                                <option value="correo">Correo electrónico</option>
+                            </select>
+                        </div>
+
+                        <div class="campo">
+                            <label id="etiquetaContacto" for="datoContacto">
+                                Elige primero un medio de contacto
+                            </label>
+                            <input
+                                id="datoContacto"
+                                name="datoContacto"
+                                type="text"
+                                maxlength="120"
+                                autocomplete="off"
+                                placeholder="Campo opcional"
+                                disabled>
+                        </div>
+                    </div>
+
+                    <small class="ayuda">
+                        Para WhatsApp, escribe el número con clave internacional;
+                        por ejemplo: +52 55 1234 5678.
+                    </small>
+
+                    <label class="consentimientoContacto">
+                        <input id="autorizaContacto" type="checkbox">
+                        Autorizo que este contacto sea visible para las personas usuarias.
+                    </label>
+                </fieldset>
+
+                <fieldset class="grupoOpcional">
+                    <legend>Información adicional <span>(opcional)</span></legend>
+
+                    <div class="rejillaCampos">
+                        <div class="campo">
+                            <label for="saturacionNegocio">
+                                ¿Qué tan concurrido suele estar?
+                            </label>
+                            <select id="saturacionNegocio" name="saturacion">
+                                <option value="">Sin información</option>
+                                <option value="baja">Poco concurrido</option>
+                                <option value="media">Concurrencia moderada</option>
+                                <option value="alta">Muy concurrido</option>
+                            </select>
+                        </div>
+
+                        <div class="campo">
+                            <label for="estacionamiento">
+                                Disponibilidad de estacionamiento
+                            </label>
+                            <select id="estacionamiento" name="estacionamiento">
+                                <option value="">Sin información</option>
+                                <option value="disponible">Suele haber lugares</option>
+                                <option value="limitado">Disponibilidad limitada</option>
+                                <option value="sin-lugares">Generalmente está lleno</option>
+                                <option value="no-cuenta">No cuenta con estacionamiento</option>
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="grupoObligatorio">
+                    <legend>Ubicación *</legend>
+
+                    <div class="campo">
+                        <label for="ubicacionNegocio">
+                            Escribe la dirección o una referencia clara
+                        </label>
+                        <textarea
+                            id="ubicacionNegocio"
+                            name="ubicacion"
+                            rows="3"
+                            maxlength="240"
+                            placeholder="Calle, colonia, alcaldía y una referencia para encontrar el negocio"
+                            required></textarea>
+                    </div>
+
+                    <p class="ayuda">
+                        Especifica el lugar con suficiente detalle para que las
+                        personas puedan encontrarlo.
+                    </p>
+                </fieldset>
+
+                <fieldset class="grupoObligatorio">
+                    <legend>Horarios de atención *</legend>
+                    <p class="ayuda">
+                        Elige al menos un día y especifica la hora de apertura y cierre.
+                    </p>
+
+                    <div class="diasSemana">
+                        <label><input type="checkbox" name="dias" value="lunes"> Lunes</label>
+                        <label><input type="checkbox" name="dias" value="martes"> Martes</label>
+                        <label><input type="checkbox" name="dias" value="miércoles"> Miércoles</label>
+                        <label><input type="checkbox" name="dias" value="jueves"> Jueves</label>
+                        <label><input type="checkbox" name="dias" value="viernes"> Viernes</label>
+                        <label><input type="checkbox" name="dias" value="sábado"> Sábado</label>
+                        <label><input type="checkbox" name="dias" value="domingo"> Domingo</label>
+                    </div>
+
+                    <div class="rejillaCampos">
+                        <div class="campo">
+                            <label for="horaApertura">Hora de apertura *</label>
+                            <input id="horaApertura" name="apertura" type="time" required>
+                        </div>
+
+                        <div class="campo">
+                            <label for="horaCierre">Hora de cierre *</label>
+                            <input id="horaCierre" name="cierre" type="time" required>
+                        </div>
+                    </div>
+
+                    <p id="errorHorario" class="errorCampo" aria-live="polite"></p>
+                </fieldset>
+
+                <div class="campo">
+                    <label for="fotosNegocio">Fotos <span>(opcional, hasta 3)</span></label>
+                    <input
+                        id="fotosNegocio"
+                        name="fotos"
+                        type="file"
+                        accept="image/*"
+                        multiple>
+                    <small>
+                        Las imágenes se reducen para guardarlas en este navegador.
+                        Elige fotos de hasta 8 MB cada una.
+                    </small>
+                    <div id="vistaFotos" class="vistaFotos" aria-live="polite"></div>
+                </div>
+
+                <p id="mensajeRegistro" class="mensajeRegistro" role="status" aria-live="polite"></p>
+
+                <button id="botonEnviar" class="btn-primary" type="submit">
+                    Registrar negocio
+                </button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

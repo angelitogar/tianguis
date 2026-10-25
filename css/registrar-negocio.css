@@ -1,0 +1,248 @@
+/* Permite recorrer la página aunque styles.css desactive el desplazamiento. */
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    height: auto;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+/* Contenedor principal del formulario. */
+.registro-container {
+    min-height: calc(100vh - 76px);
+    padding: 28px 16px;
+    overflow: visible !important;
+    background: linear-gradient(135deg, #f4f7f5, #e5f4ed);
+}
+
+.registro-card {
+    width: min(100%, 760px);
+    margin: 0 auto;
+    padding: 30px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e5eae7);
+    border-radius: 18px;
+    box-shadow: var(--shadow, 0 3px 14px rgba(24, 45, 35, 0.14));
+}
+
+.registro-etiqueta {
+    margin: 0 0 7px;
+    color: var(--primary, #176b52);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+}
+
+.registro-card h1 {
+    margin: 0 0 9px;
+    color: var(--text, #202b27);
+    font-size: 29px;
+}
+
+.registro-introduccion {
+    color: var(--muted, #68756f);
+    line-height: 1.5;
+}
+
+.mensaje-sin-cuenta {
+    margin: 18px 0 24px;
+    padding: 12px 14px;
+    color: var(--primary, #176b52);
+    background: var(--primary-light, #e5f4ed);
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+#formularioNegocio {
+    display: grid;
+    gap: 18px;
+}
+
+.campo {
+    display: grid;
+    gap: 7px;
+}
+
+.campo label,
+.grupoOpcional legend,
+.grupoObligatorio legend {
+    color: var(--text, #202b27);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.campo label span,
+.grupoOpcional legend span {
+    color: var(--muted, #68756f);
+    font-weight: 400;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+    width: 100%;
+    padding: 11px 12px;
+    color: var(--text, #202b27);
+    background: #ffffff;
+    border: 1px solid var(--border, #e5eae7);
+    border-radius: 9px;
+    font: inherit;
+}
+
+.campo textarea {
+    resize: vertical;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+    border-color: var(--primary, #176b52);
+    outline: 2px solid transparent;
+}
+
+.campo input:disabled {
+    color: var(--muted, #68756f);
+    background: #f3f6f4;
+    cursor: not-allowed;
+}
+
+.campo small,
+.ayuda {
+    color: var(--muted, #68756f);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.rejillaCampos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.grupoOpcional,
+.grupoObligatorio {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--border, #e5eae7);
+    border-radius: 12px;
+}
+
+.grupoOpcional legend,
+.grupoObligatorio legend {
+    padding: 0 6px;
+}
+
+.grupoOpcional .rejillaCampos,
+.grupoObligatorio .rejillaCampos {
+    width: 100%;
+}
+
+.consentimientoContacto {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--text, #202b27);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.consentimientoContacto input {
+    margin-top: 3px;
+    accent-color: var(--primary, #176b52);
+}
+
+.diasSemana {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.diasSemana label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.diasSemana input {
+    accent-color: var(--primary, #176b52);
+}
+
+.errorCampo {
+    min-height: 16px;
+    margin: 0;
+    color: #b42318;
+    font-size: 13px;
+}
+
+.vistaFotos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.fotoSeleccionada {
+    width: 100px;
+    height: 85px;
+    object-fit: cover;
+    border: 1px solid var(--border, #e5eae7);
+    border-radius: 8px;
+}
+
+.mensajeRegistro {
+    margin: 0;
+    color: var(--primary, #176b52);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.mensajeRegistro.error {
+    color: #b42318;
+}
+
+.botonSecundario,
+.btn-secondary-link {
+    color: var(--primary, #176b52);
+    text-decoration: none;
+    font-weight: 650;
+}
+
+.btn-secondary-link {
+    padding: 8px 14px;
+    background: var(--primary-light, #e5f4ed);
+    border-radius: 8px;
+}
+
+.btn-secondary-link:hover {
+    background: #d4ebd9;
+}
+
+.topbar-right {
+    margin-left: auto;
+}
+
+/* Mantiene el formulario legible en pantallas estrechas. */
+@media (max-width: 600px) {
+    .registro-container {
+        padding: 16px 10px;
+    }
+
+    .registro-card {
+        padding: 20px 16px;
+    }
+
+    .rejillaCampos {
+        grid-template-columns: 1fr;
+    }
+
+    .diasSemana {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
