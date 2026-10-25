@@ -2,52 +2,15 @@
 (() => {
     "use strict";
 
-    const USERS_KEY = "tianguis_usuarios_v1";
+    const API = window.TianguisNegocios;
     const SESSION_KEY = "tianguis_session";
 
     function leerUsuarios() {
-        try {
-            const usuarios = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-            return Array.isArray(usuarios) ? usuarios : [];
-        } catch {
-            return [];
-        }
+        return API.obtenerTabla("users");
     }
 
     function guardarUsuarios(usuarios) {
-        localStorage.setItem(USERS_KEY, JSON.stringify(usuarios));
-    }
-
-    function agregarUsuariosDemo() {
-        const usuarios = leerUsuarios();
-        const demos = [
-            {
-                username: "admin_sedeco",
-                password: "123",
-                role: "admin",
-                name: "Lic. Roberto González",
-                business: "",
-                tianguis: "Todos los sectores"
-            },
-            {
-                username: "lupita_antojitos",
-                password: "123",
-                role: "vendedor",
-                name: "María Guadalupe Pérez",
-                business: "Antojitos Lupita",
-                tianguis: "Tianguis Sullivan (Cuauhtémoc)"
-            }
-        ];
-
-        demos.forEach(demo => {
-            if (!usuarios.some(usuario =>
-                usuario.username.toLowerCase() === demo.username.toLowerCase()
-            )) {
-                usuarios.push(demo);
-            }
-        });
-
-        guardarUsuarios(usuarios);
+        API.guardarTabla("users", usuarios);
     }
 
     function guardarSesion(usuario) {
@@ -56,12 +19,20 @@
             role: usuario.role,
             name: usuario.name,
             business: usuario.business || "",
-            tianguis: usuario.tianguis || ""
+            tianguis: usuario.tianguis || "",
+            marketId: usuario.marketId || ""
         }));
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        agregarUsuariosDemo();
+    document.addEventListener("DOMContentLoaded", async () => {
+        const authAlert = document.getElementById("authAlert");
+        try {
+            await API.ready;
+        } catch (error) {
+            authAlert.textContent = `No se pudieron cargar los datos de Tianguis: ${error.message}`;
+            authAlert.className = "auth-alert error";
+            return;
+        }
 
         const tabLogin = document.getElementById("tabLogin");
         const tabRegister = document.getElementById("tabRegister");
@@ -69,11 +40,15 @@
         const registerForm = document.getElementById("registerForm");
         const formTitle = document.getElementById("formTitle");
         const formSubtitle = document.getElementById("formSubtitle");
-        const authAlert = document.getElementById("authAlert");
         const regRole = document.getElementById("regRole");
         const groupBusinessName = document.getElementById("groupBusinessName");
         const groupTianguis = document.getElementById("groupTianguis");
         const roleBadge = document.getElementById("roleBadge");
+        const marketSelect = document.getElementById("regTianguis");
+
+        API.obtenerTabla("markets").forEach(mercado => {
+            marketSelect.appendChild(new Option(mercado.name, mercado.id));
+        });
 
         function mostrarAlerta(texto, tipo) {
             authAlert.textContent = texto;
@@ -180,13 +155,15 @@
                 return;
             }
 
+            const mercado = API.obtenerTabla("markets").find(item => item.id === tianguis);
             const nuevoUsuario = {
                 username,
                 password,
                 role,
                 name,
                 business: role === "vendedor" ? business : "SEDECO",
-                tianguis: role === "vendedor" ? tianguis : "N/A"
+                tianguis: role === "vendedor" ? mercado?.name || "" : "N/A",
+                marketId: role === "vendedor" ? mercado?.id || "" : ""
             };
 
             try {

@@ -1,71 +1,30 @@
-/* Funciones compartidas para negocios y valoraciones.
- * Los datos se guardan en este navegador mediante localStorage.
- */
+/* Base de datos local compartida por las páginas de Tianguis. */
 (() => {
     "use strict";
 
-    const CLAVE_NEGOCIOS = "tianguis_negocios_registrados";
-    const CLAVE_VALORACIONES = "tianguis_valoraciones_v1";
-    const CLAVE_VISITANTE = "tianguis_visitante_v1";
-
-    const DEMOSTRACION = [
-        {
-            id: "demo-antojitos-lupita",
-            name: "Antojitos Lupita",
-            category: "comida-preparada",
-            location: "Ubicación de demostración",
-            schedule: "",
-            description: "",
-            parking: "",
-            photos: [],
-            contact: { method: "", value: "", share: false },
-            x: 28,
-            y: 37,
-            isDemo: true
-        },
-        {
-            id: "demo-ropa-novedades",
-            name: "Ropa y novedades",
-            category: "ropa",
-            location: "Ubicación de demostración",
-            schedule: "",
-            description: "",
-            parking: "",
-            photos: [],
-            contact: { method: "", value: "", share: false },
-            x: 58,
-            y: 52,
-            isDemo: true
-        },
-        {
-            id: "demo-hogar",
-            name: "Artículos para el hogar",
-            category: "otro",
-            location: "Ubicación de demostración",
-            schedule: "",
-            description: "",
-            parking: "",
-            photos: [],
-            contact: { method: "", value: "", share: false },
-            x: 72,
-            y: 34,
-            isDemo: true
-        },
-        {
-            id: "demo-servicios",
-            name: "Reparaciones y servicios",
-            category: "otro",
-            location: "Ubicación de demostración",
-            schedule: "",
-            description: "",
-            parking: "",
-            photos: [],
-            contact: { method: "", value: "", share: false },
-            x: 42,
-            y: 69,
-            isDemo: true
-        }
+    const DATABASE_KEY = "tianguis_database_v1";
+    const LEGACY_KEYS = {
+        businesses: "tianguis_negocios_registrados",
+        products: "tianguis_products",
+        users: "tianguis_usuarios_v1",
+        denuncias: "tianguis_denuncias",
+        ratings: "tianguis_valoraciones_v1",
+        cartItems: "tianguis.listaCompras.v1"
+    };
+    const TABLES = [
+        "markets",
+        "users",
+        "businesses",
+        "products",
+        "denuncias",
+        "ratings",
+        "cartItems"
     ];
+    let database = null;
+
+    function clone(value) {
+        return JSON.parse(JSON.stringify(value));
+    }
 
     function crearId() {
         return globalThis.crypto?.randomUUID?.()
@@ -78,12 +37,11 @@
 
     function normalizarNegocio(registro) {
         const negocio = registro && typeof registro === "object" ? registro : {};
-        const contactoOriginal = negocio.contact && typeof negocio.contact === "object"
+        const contacto = negocio.contact && typeof negocio.contact === "object"
             ? negocio.contact
             : {};
-
-        const xOriginal = negocio.x ?? negocio.mapX ?? negocio.posicionX;
-        const yOriginal = negocio.y ?? negocio.mapY ?? negocio.posicionY;
+        const x = negocio.x ?? negocio.mapX ?? negocio.posicionX;
+        const y = negocio.y ?? negocio.mapY ?? negocio.posicionY;
 
         return {
             ...negocio,
@@ -91,12 +49,11 @@
             name: String(
                 negocio.name || negocio.nombre || negocio.businessName || "Negocio sin nombre"
             ).trim(),
-            category: String(
-                negocio.category || negocio.categoria || "otro"
-            ).trim(),
+            category: String(negocio.category || negocio.categoria || "otro").trim(),
             location: String(
                 negocio.location || negocio.ubicacion || negocio.referencia || ""
             ).trim(),
+            marketId: String(negocio.marketId || ""),
             schedule: negocio.schedule || negocio.horario || negocio.horarios || "",
             days: Array.isArray(negocio.days)
                 ? negocio.days
@@ -113,247 +70,443 @@
                     ? negocio.fotos.filter(foto => typeof foto === "string")
                     : [],
             contact: {
-                method: String(
-                    contactoOriginal.method
-                    || negocio.contactMethod
-                    || negocio.medioContacto
-                    || ""
-                ),
-                value: String(
-                    contactoOriginal.value
-                    || negocio.contactValue
-                    || negocio.contacto
-                    || ""
-                ),
-                share: Boolean(
-                    contactoOriginal.share
-                    ?? negocio.shareContact
-                    ?? negocio.compartirContacto
-                    ?? false
-                )
+                method: String(contacto.method || negocio.contactMethod || negocio.medioContacto || ""),
+                value: String(contacto.value || negocio.contactValue || negocio.contacto || ""),
+                share: Boolean(contacto.share ?? negocio.shareContact ?? negocio.compartirContacto ?? false)
             },
             ownerUsername: normalizarNombreUsuario(
                 negocio.ownerUsername || negocio.owner || negocio.responsable || ""
             ),
             claimCode: String(negocio.claimCode || negocio.codigoVinculacion || ""),
-            x: Number.isFinite(Number(xOriginal)) ? Number(xOriginal) : null,
-            y: Number.isFinite(Number(yOriginal)) ? Number(yOriginal) : null,
+            x: x !== null && x !== undefined && Number.isFinite(Number(x)) ? Number(x) : null,
+            y: y !== null && y !== undefined && Number.isFinite(Number(y)) ? Number(y) : null,
             createdAt: negocio.createdAt || negocio.fechaRegistro || "",
             updatedAt: negocio.updatedAt || ""
         };
     }
 
-    function leerNegocios() {
-        const contenido = localStorage.getItem(CLAVE_NEGOCIOS);
+    function leerLegacy(tabla) {
+        const clave = LEGACY_KEYS[tabla];
+        const contenido = clave ? localStorage.getItem(clave) : null;
         if (!contenido) return [];
 
-        const original = JSON.parse(contenido);
-        const registros = Array.isArray(original)
-            ? original
-            : Array.isArray(original?.negocios)
-                ? original.negocios
-                : [];
+        const parseado = JSON.parse(contenido);
+        if (tabla === "businesses") {
+            return Array.isArray(parseado)
+                ? parseado
+                : Array.isArray(parseado?.negocios)
+                    ? parseado.negocios
+                    : [];
+        }
 
-        const negocios = registros.map(normalizarNegocio);
+        if (tabla === "users") {
+            return Array.isArray(parseado) ? parseado : [];
+        }
 
-        // Convierte el arreglo anterior al formato versionado sin cambiar la clave existente.
-        if (Array.isArray(original) || original?.version !== 1) {
-            try {
-                localStorage.setItem(
-                    CLAVE_NEGOCIOS,
-                    JSON.stringify({ version: 1, negocios })
+        return Array.isArray(parseado) ? parseado : [];
+    }
+
+    function identidad(tabla, registro) {
+        return tabla === "users"
+            ? normalizarNombreUsuario(registro.username)
+            : String(registro.id || "");
+    }
+
+    function fusionar(tabla, base, adicionales) {
+        const registros = new Map(base.map(registro => [identidad(tabla, registro), registro]));
+
+        adicionales.forEach(registro => {
+            const id = identidad(tabla, registro);
+            if (!id) return;
+            const previo = registros.get(id);
+            registros.set(id, previo ? { ...previo, ...registro } : registro);
+        });
+
+        return [...registros.values()];
+    }
+
+    function repararReferencias(tables) {
+        const mercados = new Map(tables.markets.map(mercado => [
+            mercado.name.trim().toLocaleLowerCase("es"),
+            mercado.id
+        ]));
+        const mercadoPorId = new Map(tables.markets.map(mercado => [mercado.id, mercado]));
+        const negocios = tables.businesses.map(normalizarNegocio);
+
+        tables.businesses = negocios.map(negocio => ({
+            ...negocio,
+            marketId: negocio.marketId || mercados.get(
+                String(negocio.marketName || negocio.tianguis || negocio.location)
+                    .trim()
+                    .toLocaleLowerCase("es")
+            ) || ""
+        }));
+        const negocioPorId = new Map(tables.businesses.map(negocio => [negocio.id, negocio]));
+        const negocioPorNombre = new Map(tables.businesses.map(negocio => [
+            negocio.name.trim().toLocaleLowerCase("es"),
+            negocio
+        ]));
+        tables.users = tables.users.map(usuario => {
+            const negocioPropio = tables.businesses.find(negocio =>
+                negocio.ownerUsername === normalizarNombreUsuario(usuario.username)
+            );
+            const marketId = negocioPropio?.marketId || usuario.marketId || mercados.get(
+                String(usuario.tianguis || "").trim().toLocaleLowerCase("es")
+            ) || "";
+
+            return {
+                ...usuario,
+                business: negocioPropio?.name || usuario.business || "",
+                marketId,
+                tianguis: mercadoPorId.get(marketId)?.name || usuario.tianguis || ""
+            };
+        });
+
+        tables.products = tables.products.map(producto => {
+            const negocio = negocioPorId.get(producto.businessId)
+                || negocioPorNombre.get(String(producto.businessName || "").trim().toLocaleLowerCase("es"))
+                || negocios.find(item =>
+                    normalizarNombreUsuario(item.ownerUsername) ===
+                    normalizarNombreUsuario(producto.username)
                 );
-            } catch {
-                // La página podrá mostrar los datos aunque el navegador no permita migrarlos.
+            const mercado = negocio?.marketId
+                ? negocio.marketId
+                : mercados.get(String(producto.tianguis || "").trim().toLocaleLowerCase("es"));
+            const marketId = negocio?.marketId || producto.marketId || mercado || "";
+            const username = normalizarNombreUsuario(
+                negocio?.ownerUsername || producto.username || ""
+            );
+            const usuario = tables.users.find(item =>
+                normalizarNombreUsuario(item.username) ===
+                username
+            );
+
+            return {
+                ...producto,
+                businessId: negocio?.id || String(producto.businessId || ""),
+                marketId,
+                businessName: negocio?.name || producto.businessName || "",
+                vendorName: usuario?.name || producto.vendorName || "",
+                tianguis: mercadoPorId.get(marketId)?.name || producto.tianguis || "",
+                username,
+                unit: producto.unit || "pieza",
+                availability: producto.availability || "disponible",
+                aliases: Array.isArray(producto.aliases) ? producto.aliases : []
+            };
+        });
+
+        tables.denuncias = tables.denuncias.map(denuncia => ({
+            ...denuncia,
+            marketId: denuncia.marketId || mercados.get(
+                String(denuncia.marketName || denuncia.tianguis || "").trim().toLocaleLowerCase("es")
+            ) || "",
+            businessId: String(denuncia.businessId || ""),
+            type: denuncia.type || denuncia.tipo || "",
+            marketName: mercadoPorId.get(denuncia.marketId)?.name
+                || denuncia.marketName
+                || denuncia.tianguis
+                || "",
+            businessName: negocioPorId.get(denuncia.businessId)?.name
+                || denuncia.businessName
+                || denuncia.puesto
+                || "",
+            incidentAt: denuncia.incidentAt || denuncia.fechaIncidente || "",
+            createdAt: denuncia.createdAt || denuncia.fechaRegistro || "",
+            description: denuncia.description || denuncia.descripcion || "",
+            reporter: denuncia.reporter || denuncia.denunciante || "Anónimo",
+            reporterContact: denuncia.reporterContact || denuncia.contacto || "",
+            evidence: denuncia.evidence ?? denuncia.evidencia ?? null
+        }));
+
+        tables.ratings = tables.ratings.map(valoracion => ({
+            ...valoracion,
+            businessId: String(valoracion.businessId || "")
+        }));
+    }
+
+    function persistir() {
+        localStorage.setItem(DATABASE_KEY, JSON.stringify(database));
+    }
+
+    function guardarBaseInicial() {
+        const clavesLegacy = [...new Set(Object.values(LEGACY_KEYS))];
+        const valoresLegacy = new Map(clavesLegacy
+            .map(clave => [clave, localStorage.getItem(clave)])
+            .filter(([, valor]) => valor !== null));
+
+        try {
+            clavesLegacy.forEach(clave => localStorage.removeItem(clave));
+            persistir();
+        } catch (error) {
+            valoresLegacy.forEach((valor, clave) => localStorage.setItem(clave, valor));
+            throw error;
+        }
+    }
+
+    function iniciar(seed) {
+        if (!seed || seed.version !== 1) {
+            throw new Error("El archivo de datos debe tener version 1.");
+        }
+        const tablasRequeridas = TABLES.filter(tabla => tabla !== "cartItems");
+        const tablaInvalida = tablasRequeridas.find(tabla => !Array.isArray(seed[tabla]));
+        if (tablaInvalida) {
+            throw new Error(`El archivo de datos no contiene la tabla "${tablaInvalida}".`);
+        }
+
+        let existente = null;
+        const guardado = localStorage.getItem(DATABASE_KEY);
+        if (guardado) {
+            existente = JSON.parse(guardado);
+            if (
+                existente.version !== 1 ||
+                !existente.tables ||
+                TABLES.some(tabla => !Array.isArray(existente.tables[tabla]))
+            ) {
+                throw new Error("La base de datos local tiene un formato inválido.");
             }
         }
 
-        return negocios;
+        const tables = {};
+        TABLES.forEach(tabla => {
+            const legacy = existente ? [] : leerLegacy(tabla);
+            tables[tabla] = fusionar(
+                tabla,
+                clone(seed[tabla] || []),
+                existente?.tables?.[tabla] || []
+            );
+            tables[tabla] = fusionar(tabla, tables[tabla], legacy);
+        });
+
+        database = { version: 1, tables };
+        repararReferencias(database.tables);
+        guardarBaseInicial();
     }
 
-    function guardarNegocios(negocios) {
-        if (!Array.isArray(negocios)) {
-            throw new Error("La lista de negocios no tiene un formato válido.");
+    function leerTabla(nombre) {
+        if (!database || !TABLES.includes(nombre)) {
+            throw new Error(`La tabla "${nombre}" no existe o la base de datos aún no está lista.`);
         }
 
-        localStorage.setItem(
-            CLAVE_NEGOCIOS,
-            JSON.stringify({
-                version: 1,
-                negocios: negocios.map(normalizarNegocio)
-            })
-        );
+        return clone(database.tables[nombre]);
     }
 
-    function obtenerNegocios() {
-        return leerNegocios();
+    function guardarTabla(nombre, registros) {
+        if (!database || !TABLES.includes(nombre) || !Array.isArray(registros)) {
+            throw new Error(`No se pudo guardar la tabla "${nombre}".`);
+        }
+
+        database.tables[nombre] = clone(registros);
+        repararReferencias(database.tables);
+        persistir();
+        return leerTabla(nombre);
     }
 
-    function obtenerTodosLosNegocios() {
-        return [...DEMOSTRACION, ...leerNegocios()];
+    function obtenerMercadosConProductos() {
+        const mercados = leerTabla("markets");
+        const negocios = leerTabla("businesses");
+        const productos = leerTabla("products");
+
+        return mercados.map(mercado => ({
+            id: mercado.id,
+            nombre: mercado.name,
+            horario: mercado.schedule,
+            referencia: mercado.reference,
+            x: mercado.x,
+            y: mercado.y,
+            puestos: negocios
+                .filter(negocio => negocio.marketId === mercado.id)
+                .map(negocio => ({
+                    nombre: negocio.name,
+                    categoria: negocio.category,
+                    productos: productos
+                        .filter(producto => producto.businessId === negocio.id)
+                        .map(producto => ({
+                            id: producto.id,
+                            nombre: producto.name,
+                            alias: producto.aliases || [],
+                            unidad: producto.unit || "pieza",
+                            precio: producto.price === null || producto.price === ""
+                                ? null
+                                : Number.isFinite(Number(producto.price))
+                                    ? Number(producto.price)
+                                    : null,
+                            disponibilidad: producto.availability || "disponible"
+                        }))
+                }))
+        }));
+    }
+
+    function obtenerTianguisConProductos() {
+        return obtenerMercadosConProductos();
     }
 
     function buscarNegocio(id) {
-        return obtenerTodosLosNegocios().find(
+        return leerTabla("businesses").find(
             negocio => negocio.id === String(id)
         ) || null;
     }
 
-    function guardarNegocio(negocioActualizado) {
-        const negocios = leerNegocios();
-        const negocio = normalizarNegocio(negocioActualizado);
-        const indice = negocios.findIndex(item => item.id === negocio.id);
+    const ready = fetch(new URL("../data/tianguis.json", document.currentScript.src))
+        .then(respuesta => {
+            if (!respuesta.ok) {
+                throw new Error(`No se pudieron cargar los datos (${respuesta.status}).`);
+            }
+            return respuesta.json();
+        })
+        .then(iniciar)
+        .catch(error => {
+            console.error("Error al iniciar la base de datos de Tianguis:", error);
+            throw error;
+        });
 
-        if (indice === -1) {
-            negocios.push(negocio);
-        } else {
-            negocios[indice] = {
-                ...negocios[indice],
-                ...negocio,
-                id: negocios[indice].id,
-                createdAt: negocios[indice].createdAt || negocio.createdAt
-            };
-        }
-
-        guardarNegocios(negocios);
-        return negocio;
-    }
-
-    function leerValoraciones() {
-        const contenido = localStorage.getItem(CLAVE_VALORACIONES);
-        if (!contenido) return [];
-
-        const datos = JSON.parse(contenido);
-        return Array.isArray(datos) ? datos : [];
-    }
-
-    function obtenerIdentificadorVisitante() {
-        let id = localStorage.getItem(CLAVE_VISITANTE);
-
-        if (!id) {
-            id = crearId();
-            localStorage.setItem(CLAVE_VISITANTE, id);
-        }
-
-        return id;
-    }
-
-    function obtenerValoraciones(idNegocio) {
-        return leerValoraciones().filter(
-            valoracion => valoracion.businessId === String(idNegocio)
-        );
-    }
-
-    function obtenerValoracionDelVisitante(idNegocio) {
-        const visitante = obtenerIdentificadorVisitante();
-
-        return obtenerValoraciones(idNegocio).find(
-            valoracion => valoracion.visitorId === visitante
-        ) || null;
-    }
-
-    function obtenerResumenValoraciones(idNegocio) {
-        const valoraciones = obtenerValoraciones(idNegocio);
-        const total = valoraciones.length;
-        const promedio = total
-            ? valoraciones.reduce((suma, valoracion) => suma + valoracion.stars, 0) / total
-            : 0;
-
-        return { total, promedio };
-    }
-
-    function guardarValoracion(idNegocio, estrellas, comentario, nombre) {
-        const negocio = buscarNegocio(idNegocio);
-        const numeroEstrellas = Number(estrellas);
-
-        if (!negocio) {
-            throw new Error("No se encontró el negocio que quieres valorar.");
-        }
-
-        if (!Number.isInteger(numeroEstrellas) || numeroEstrellas < 1 || numeroEstrellas > 5) {
-            throw new Error("Selecciona una valoración de 1 a 5 estrellas.");
-        }
-
-        const visitanteId = obtenerIdentificadorVisitante();
-        const valoraciones = leerValoraciones();
-        const existente = valoraciones.findIndex(
-            item => item.businessId === String(idNegocio)
-                && item.visitorId === visitanteId
-        );
-
-        const valoracion = {
-            id: existente >= 0 ? valoraciones[existente].id : crearId(),
-            businessId: String(idNegocio),
-            visitorId: visitanteId,
-            author: String(nombre || "").trim().slice(0, 50),
-            stars: numeroEstrellas,
-            comment: String(comentario || "").trim().slice(0, 500),
-            createdAt: new Date().toISOString()
-        };
-
-        if (existente >= 0) {
-            valoraciones[existente] = valoracion;
-        } else {
-            valoraciones.push(valoracion);
-        }
-
-        localStorage.setItem(CLAVE_VALORACIONES, JSON.stringify(valoraciones));
-        return valoracion;
-    }
-
-    function etiquetaCategoria(categoria) {
-        const etiquetas = {
-            "comida-preparada": "Comida preparada",
-            ropa: "Ropa",
-            carne: "Carne",
-            pollo: "Pollo",
-            pescado: "Pescado",
-            "frutas-verduras": "Fruta y verdura",
-            cremeria: "Cremería",
-            libros: "Libros",
-            "tiendas-catalogo": "Tiendas de catálogo",
-            otro: "Otro"
-        };
-
-        return etiquetas[categoria] || "Otro";
-    }
-
-    function textoHorario(negocio) {
-        if (typeof negocio.schedule === "string" && negocio.schedule.trim()) {
-            return negocio.schedule.trim();
-        }
-
-        const dias = Array.isArray(negocio.days) ? negocio.days : [];
-        if (!dias.length || !negocio.openingTime || !negocio.closingTime) {
-            return "";
-        }
-
-        return `${dias.join(", ")} · ${negocio.openingTime} a ${negocio.closingTime}`;
-    }
-
-    function escaparHTML(valor) {
-        return String(valor ?? "").replace(/[&<>"']/g, caracter => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        })[caracter]);
-    }
+    window.TianguisDB = {
+        ready,
+        obtenerTabla: leerTabla,
+        guardarTabla,
+        obtenerMercadosConProductos
+    };
 
     window.TianguisNegocios = {
+        ready,
         crearId,
         normalizarNombreUsuario,
-        obtenerNegocios,
-        obtenerTodosLosNegocios,
+        obtenerNegocios: () => leerTabla("businesses"),
+        obtenerTodosLosNegocios: () => leerTabla("businesses"),
         buscarNegocio,
-        guardarNegocio,
-        obtenerValoraciones,
-        obtenerValoracionDelVisitante,
-        obtenerResumenValoraciones,
-        guardarValoracion,
-        etiquetaCategoria,
-        textoHorario,
-        escaparHTML
+        guardarNegocio(negocioActualizado) {
+            const negocios = leerTabla("businesses");
+            const negocio = normalizarNegocio(negocioActualizado);
+            const indice = negocios.findIndex(item => item.id === negocio.id);
+
+            if (indice === -1) {
+                negocios.push(negocio);
+            } else {
+                const existente = negocios[indice];
+                if (
+                    existente.ownerUsername &&
+                    existente.ownerUsername !== negocio.ownerUsername
+                ) {
+                    throw new Error("Solo la cuenta propietaria puede modificar este negocio.");
+                }
+                negocios[indice] = {
+                    ...existente,
+                    ...negocio,
+                    id: existente.id,
+                    createdAt: existente.createdAt || negocio.createdAt
+                };
+            }
+
+            guardarTabla("businesses", negocios);
+            return buscarNegocio(negocio.id);
+        },
+        obtenerValoraciones(idNegocio) {
+            return leerTabla("ratings").filter(
+                valoracion => valoracion.businessId === String(idNegocio)
+            );
+        },
+        obtenerValoracionDelVisitante(idNegocio) {
+            const visitante = localStorage.getItem("tianguis_visitante_v1");
+            return this.obtenerValoraciones(idNegocio).find(
+                valoracion => valoracion.visitorId === visitante
+            ) || null;
+        },
+        obtenerResumenValoraciones(idNegocio) {
+            const valoraciones = this.obtenerValoraciones(idNegocio);
+            return {
+                total: valoraciones.length,
+                promedio: valoraciones.length
+                    ? valoraciones.reduce((suma, valoracion) => suma + valoracion.stars, 0) /
+                        valoraciones.length
+                    : 0
+            };
+        },
+        guardarValoracion(idNegocio, estrellas, comentario, nombre) {
+            if (!this.buscarNegocio(idNegocio)) {
+                throw new Error("No se encontró el negocio que quieres valorar.");
+            }
+
+            const numeroEstrellas = Number(estrellas);
+            if (!Number.isInteger(numeroEstrellas) || numeroEstrellas < 1 || numeroEstrellas > 5) {
+                throw new Error("Selecciona una valoración de 1 a 5 estrellas.");
+            }
+
+            let visitanteId = localStorage.getItem("tianguis_visitante_v1");
+            if (!visitanteId) {
+                visitanteId = crearId();
+                localStorage.setItem("tianguis_visitante_v1", visitanteId);
+            }
+
+            const valoraciones = leerTabla("ratings");
+            const existente = valoraciones.findIndex(valoracion =>
+                valoracion.businessId === String(idNegocio) &&
+                valoracion.visitorId === visitanteId
+            );
+            const valoracion = {
+                id: existente >= 0 ? valoraciones[existente].id : crearId(),
+                businessId: String(idNegocio),
+                visitorId: visitanteId,
+                author: String(nombre || "").trim().slice(0, 50),
+                stars: numeroEstrellas,
+                comment: String(comentario || "").trim().slice(0, 500),
+                createdAt: new Date().toISOString()
+            };
+
+            if (existente >= 0) valoraciones[existente] = valoracion;
+            else valoraciones.push(valoracion);
+            guardarTabla("ratings", valoraciones);
+            return valoracion;
+        },
+        obtenerTianguisConProductos,
+        etiquetaCategoria(categoria) {
+            return ({
+                "comida-preparada": "Comida preparada",
+                ropa: "Ropa",
+                carne: "Carne",
+                pollo: "Pollo",
+                pescado: "Pescado",
+                "frutas-verduras": "Fruta y verdura",
+                cremeria: "Cremería",
+                hogar: "Hogar",
+                servicios: "Servicios",
+                libros: "Libros",
+                "tiendas-catalogo": "Tiendas de catálogo",
+                otro: "Otro"
+            })[categoria] || "Otro";
+        },
+        textoHorario(negocio) {
+            if (typeof negocio.schedule === "string" && negocio.schedule.trim()) {
+                return negocio.schedule.trim();
+            }
+            if (
+                !Array.isArray(negocio.days) ||
+                !negocio.days.length ||
+                !negocio.openingTime ||
+                !negocio.closingTime
+            ) return "";
+            return `${negocio.days.join(", ")} · ${negocio.openingTime} a ${negocio.closingTime}`;
+        },
+        escaparHTML(valor) {
+            return String(valor ?? "").replace(/[&<>"']/g, caracter => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            })[caracter]);
+        }
     };
+
+    window.addEventListener("storage", evento => {
+        if (evento.key !== DATABASE_KEY || !evento.newValue) return;
+        const actualizado = JSON.parse(evento.newValue);
+        if (
+            actualizado.version !== 1 ||
+            !actualizado.tables ||
+            TABLES.some(tabla => !Array.isArray(actualizado.tables[tabla]))
+        ) {
+            console.error("Se recibió una base de datos compartida con formato inválido.");
+            return;
+        }
+        database = actualizado;
+    });
 })();

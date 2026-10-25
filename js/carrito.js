@@ -1,9 +1,9 @@
 (() => {
     "use strict";
 
-    const CLAVE_LISTA = "tianguis.listaCompras.v1";
     const UNIDADES_PERMITIDAS = ["kg", "pieza", "litro", "manojo", "paquete"];
-    const tianguis = window.TIANGUIS_DEMO || [];
+    const API = window.TianguisNegocios;
+    let tianguis = [];
 
     const elementos = {
         formulario: document.getElementById("formularioProducto"),
@@ -23,7 +23,16 @@
         panelRuta: document.getElementById("panelRuta")
     };
 
-    let productosLista = cargarLista();
+    const controles = [
+        ...elementos.formulario.elements,
+        elementos.vaciar,
+        elementos.filtro
+    ];
+    controles.forEach(control => {
+        control.disabled = true;
+    });
+
+    let productosLista = [];
     let tianguisSeleccionado = null;
 
     function normalizar(texto) {
@@ -42,26 +51,13 @@
     }
 
     function cargarLista() {
-        try {
-            const textoGuardado = localStorage.getItem(CLAVE_LISTA);
-            if (!textoGuardado) return [];
-            const listaGuardada = JSON.parse(textoGuardado);
-            if (!Array.isArray(listaGuardada)) return [];
-
-            return listaGuardada.filter(p =>
-                p && typeof p.nombre === "string" && Number.isFinite(p.cantidad)
-            );
-        } catch {
-            return [];
-        }
+        return API.obtenerTabla("cartItems").filter(p =>
+            p && typeof p.nombre === "string" && Number.isFinite(p.cantidad)
+        );
     }
 
     function guardarLista() {
-        try {
-            localStorage.setItem(CLAVE_LISTA, JSON.stringify(productosLista));
-        } catch (e) {
-            console.error("Error al guardar lista", e);
-        }
+        productosLista = API.guardarTabla("cartItems", productosLista);
     }
 
     function obtenerProductosCatalogo() {
@@ -76,6 +72,10 @@
         return mercado.puestos.flatMap(puesto =>
             puesto.productos
                 .filter(producto => {
+                    if (producto.disponibilidad === "agotado") return false;
+                    if (productoBuscado.productId) {
+                        return producto.id === productoBuscado.productId;
+                    }
                     const nombres = [producto.nombre, ...(producto.alias || [])];
                     return nombres.some(n => normalizar(n) === nombreBuscado || normalizar(n).includes(nombreBuscado) || nombreBuscado.includes(normalizar(n)));
                 })
@@ -92,7 +92,9 @@
     }
 
     function formatoMoneda(precio) {
-        return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(precio);
+        return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(
+            Number(precio) || 0
+        );
     }
 
     function mostrarLista() {
@@ -200,8 +202,10 @@
                     mapaPuestos[nombrePuesto] = [];
                 }
 
-                const costoProd = mejorOferta.precio * prod.cantidad;
-                totalEstimado += costoProd;
+                const costoProd = mejorOferta.precio === null
+                    ? null
+                    : mejorOferta.precio * prod.cantidad;
+                if (costoProd !== null) totalEstimado += costoProd;
 
                 mapaPuestos[nombrePuesto].push({
                     producto: prod.nombre,
@@ -213,7 +217,10 @@
         });
 
         for (const [puesto, prods] of Object.entries(mapaPuestos)) {
-            const detalleProds = prods.map(p => `<strong>${p.producto}</strong> (${p.cantidad}) - ${formatoMoneda(p.subtotal)}`).join(", ");
+            const detalleProds = prods.map(p => `
+                <strong>${p.producto}</strong> (${p.cantidad}) -
+                ${p.subtotal === null ? "precio por confirmar" : formatoMoneda(p.subtotal)}
+            `).join(", ");
 
             pasosHTML += `
                 <li class="ruta-paso">
@@ -238,7 +245,7 @@
             </ul>
             <div class="ruta-total">
                 <span>Presupuesto Estimado Total:</span>
-                <span>${formatoMoneda(totalEstimado)}</span>
+                <span>${formatoMoneda(totalEstimado)} (sin precios por confirmar)</span>
             </div>
         `;
     }
@@ -249,7 +256,15 @@
 
         return tianguis.filter(mercado => {
             if (categoria !== "todos") {
-                const tieneCat = mercado.puestos.some(p => normalizar(p.categoria) === normalizar(categoria) || p.categoria === categoria);
+                const tieneCat = mercado.puestos.some(puesto => {
+                    const grupo = ["comida-preparada", "carne", "pollo", "pescado", "frutas-verduras", "cremeria"]
+                        .includes(puesto.categoria)
+                        ? "comida"
+                        : ["ropa", "hogar", "servicios"].includes(puesto.categoria)
+                            ? puesto.categoria
+                            : "otros";
+                    return normalizar(grupo) === normalizar(categoria);
+                });
                 if (!tieneCat) return false;
             }
             if (!busqueda) return true;
@@ -331,6 +346,9 @@
 
         productosLista.push({
             id: crearId(),
+            productId: obtenerProductosCatalogo().find(
+                producto => normalizar(producto.nombre) === normalizar(nombre)
+            )?.id || "",
             nombre,
             cantidad,
             unidad,
@@ -350,5 +368,15 @@
 
     elementos.filtro.addEventListener("change", mostrarTianguis);
 
-    dibujarPagina();
+    API.ready.then(() => {
+        tianguis = API.obtenerTianguisConProductos();
+        productosLista = cargarLista();
+        controles.forEach(control => {
+            control.disabled = false;
+        });
+        dibujarPagina();
+    }).catch(error => {
+        elementos.aviso.textContent = `No se pudieron cargar los datos: ${error.message}`;
+        elementos.aviso.classList.add("error");
+    });
 })();

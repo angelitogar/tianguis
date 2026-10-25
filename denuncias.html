@@ -7,6 +7,7 @@
     <title>Denuncia Ciudadana | Tianguis</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/denuncias.css">
+    <script src="js/tianguis-negocios.js" defer></script>
     <script src="js/denuncias.js" defer></script>
 </head>
 <body>
@@ -56,19 +57,13 @@
                         <label for="tianguisObj">Tianguis o Mercado Público *</label>
                         <select id="tianguisObj" required>
                             <option value="" disabled selected>Selecciona la ubicación...</option>
-                            <option value="Tianguis Sullivan (Cuauhtémoc)">Tianguis Sullivan (Cuauhtémoc)</option>
-                            <option value="Tianguis Condesa (Cuauhtémoc)">Tianguis Condesa (Cuauhtémoc)</option>
-                            <option value="Tianguis El Salado (Iztapalapa)">Tianguis El Salado (Iztapalapa)</option>
-                            <option value="Tianguis La Purísima (Iztapalapa)">Tianguis La Purísima (Iztapalapa)</option>
-                            <option value="Tianguis Mixcoac (Benito Juárez)">Tianguis Mixcoac (Benito Juárez)</option>
-                            <option value="Mercado de La Merced (Venustiano Carranza)">Mercado de La Merced (Venustiano Carranza)</option>
-                            <option value="Mercado San Juan (Cuauhtémoc)">Mercado San Juan (Cuauhtémoc)</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="nombrePuesto">Nombre del Puesto o Vendedor <span class="optional-tag">(Opcional)</span></label>
-                        <input type="text" id="nombrePuesto" placeholder="Ej. Puesto de ropa verde / Antojitos Lupita">
+                        <input type="text" id="nombrePuesto" list="businessSuggestions" placeholder="Ej. Puesto de ropa verde / Antojitos Lupita">
+                        <datalist id="businessSuggestions"></datalist>
                     </div>
 
                     <div class="form-group">

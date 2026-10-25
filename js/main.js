@@ -13,6 +13,7 @@
     let categoriaActiva = "todos";
     let negocioSeleccionado = null;
     let zoom = 1;
+    let databaseReady = false;
 
     function grupoCategoria(categoria) {
         if (["comida-preparada", "carne", "pollo", "pescado", "frutas-verduras", "cremeria"].includes(categoria)) {
@@ -49,6 +50,8 @@
     }
 
     function renderizarMarcadores() {
+        if (!databaseReady) return;
+
         const visibles = obtenerNegociosVisibles();
         const nombresDemo = new Set(
             API.obtenerTodosLosNegocios()
@@ -219,5 +222,10 @@
 
     window.addEventListener("storage", renderizarMarcadores);
 
-    renderizarMarcadores();
+    API.ready.then(() => {
+        databaseReady = true;
+        renderizarMarcadores();
+    }).catch(error => {
+        mensaje.textContent = `No se pudo cargar la base de datos: ${error.message}`;
+    });
 })();

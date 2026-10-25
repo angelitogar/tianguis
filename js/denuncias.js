@@ -1,46 +1,12 @@
-const STORAGE_KEY = "tianguis_denuncias";
-
-// Datos iniciales de demostración
-const SEED_DENUNCIAS = [
-    {
-        id: "den_101",
-        tipo: "Precios alterados / Cobro indebido",
-        tianguis: "Tianguis Sullivan (Cuauhtémoc)",
-        puesto: "Puesto de Naranjas y Cítricos",
-        fechaIncidente: "2024-02-10T11:30",
-        fechaRegistro: "2024-02-10T12:00:00.000Z",
-        descripcion: "Cobro de $80 por kilo de naranja cuando el cartel marcaba $40. Al reclamar no quisieron respetar el precio publicado.",
-        denunciante: "Anónimo",
-        contacto: "N/A",
-        evidencia: null
-    },
-    {
-        id: "den_102",
-        tipo: "Abuso o invasión de espacio público",
-        tianguis: "Tianguis El Salado (Iztapalapa)",
-        puesto: "Pasillo Central - Puesto de herramientas",
-        fechaIncidente: "2024-02-11T09:15",
-        fechaRegistro: "2024-02-11T10:20:00.000Z",
-        descripcion: "Colocaron lonas y cajas invadiendo completamente el pasillo de emergencia impidiendo el paso peatonal.",
-        denunciante: "Carlos R.",
-        contacto: "carlos@email.com",
-        evidencia: null
-    }
-];
-
+const API = window.TianguisNegocios;
 let uploadedBase64 = null;
 
 function getStoredDenuncias() {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_DENUNCIAS));
-        return SEED_DENUNCIAS;
-    }
-    return JSON.parse(data);
+    return API.obtenerTabla("denuncias");
 }
 
 function saveDenuncias(denuncias) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(denuncias));
+    API.guardarTabla("denuncias", denuncias);
 }
 
 function getCurrentUser() {
@@ -100,20 +66,20 @@ function renderDenuncias() {
     }
 
     grid.innerHTML = denuncias.map(d => {
-        const fechaFormat = new Date(d.fechaIncidente || d.fechaRegistro).toLocaleString("es-MX", {
+        const fechaFormat = new Date(d.incidentAt || d.createdAt).toLocaleString("es-MX", {
             dateStyle: "short",
             timeStyle: "short"
         });
 
         return `
             <article class="denuncia-card-item">
-                <span class="item-badge-tipo">${d.tipo}</span>
-                <div class="item-tianguis">📍 ${d.tianguis}</div>
-                ${d.puesto ? `<div class="item-puesto">🏪 ${d.puesto}</div>` : ''}
-                <div class="item-desc">${d.descripcion}</div>
-                ${d.evidencia ? `<div class="item-evidencia"><img src="${d.evidencia}" alt="Evidencia"></div>` : ''}
+                <span class="item-badge-tipo">${API.escaparHTML(d.type)}</span>
+                <div class="item-tianguis">📍 ${API.escaparHTML(d.marketName)}</div>
+                ${d.businessName ? `<div class="item-puesto">🏪 ${API.escaparHTML(d.businessName)}</div>` : ''}
+                <div class="item-desc">${API.escaparHTML(d.description)}</div>
+                ${d.evidence ? `<div class="item-evidencia"><img src="${API.escaparHTML(d.evidence)}" alt="Evidencia"></div>` : ''}
                 <div class="item-meta">
-                    <span>👤 ${d.denunciante || 'Anónimo'}</span>
+                    <span>👤 ${API.escaparHTML(d.reporter || 'Anónimo')}</span>
                     <span>📅 ${fechaFormat}</span>
                 </div>
             </article>
@@ -137,7 +103,15 @@ function exportJSONFile() {
     URL.revokeObjectURL(url);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await API.ready;
+    } catch (error) {
+        document.getElementById("denunciasGrid").textContent =
+            `No se pudieron cargar las denuncias: ${error.message}`;
+        return;
+    }
+
     const menuButton = document.getElementById("menuButton");
     const sideMenu = document.getElementById("sideMenu");
     const denunciaForm = document.getElementById("denunciaForm");
@@ -146,6 +120,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const imgPreview = document.getElementById("imgPreview");
     const btnRemoveImg = document.getElementById("btnRemoveImg");
     const btnExportJSON = document.getElementById("btnExportJSON");
+    const marketSelect = document.getElementById("tianguisObj");
+
+    marketSelect.replaceChildren(new Option("Selecciona la ubicación...", "", true, true));
+    API.obtenerTabla("markets").forEach(mercado => {
+        marketSelect.appendChild(new Option(mercado.name, mercado.id));
+    });
+
+    const businessInput = document.getElementById("nombrePuesto");
+    const businessSuggestions = document.getElementById("businessSuggestions");
+    const businesses = API.obtenerTabla("businesses");
+    const updateBusinessSuggestions = () => {
+        businessSuggestions.replaceChildren();
+        businesses
+            .filter(negocio => negocio.marketId === marketSelect.value)
+            .forEach(negocio => {
+                const option = document.createElement("option");
+                option.value = negocio.name;
+                businessSuggestions.appendChild(option);
+            });
+    };
+    marketSelect.addEventListener("change", updateBusinessSuggestions);
 
     renderMenuByRole();
     renderDenuncias();
@@ -180,7 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const tipo = document.getElementById("tipoDenuncia").value;
-        const tianguis = document.getElementById("tianguisObj").value;
+        const marketId = document.getElementById("tianguisObj").value;
+        const mercado = API.obtenerTabla("markets").find(item => item.id === marketId);
         const puesto = document.getElementById("nombrePuesto").value.trim();
         const fechaIncidente = document.getElementById("fechaIncidente").value;
         const descripcion = document.getElementById("descripcion").value.trim();
@@ -189,15 +185,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const newDenuncia = {
             id: "den_" + Date.now(),
-            tipo,
-            tianguis,
-            puesto: puesto || "No especificado",
-            fechaIncidente,
-            fechaRegistro: new Date().toISOString(),
-            descripcion,
-            denunciante,
-            contacto,
-            evidencia: uploadedBase64
+            type: tipo,
+            marketId,
+            marketName: mercado?.name || "",
+            businessId: businesses.find(negocio =>
+                negocio.marketId === marketId &&
+                negocio.name.trim().toLocaleLowerCase("es") === puesto.toLocaleLowerCase("es")
+            )?.id || "",
+            businessName: puesto || "No especificado",
+            incidentAt: fechaIncidente,
+            createdAt: new Date().toISOString(),
+            description: descripcion,
+            reporter: denunciante,
+            reporterContact: contacto,
+            evidence: uploadedBase64
         };
 
         const currentDenuncias = getStoredDenuncias();
@@ -210,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
         denunciaForm.reset();
         uploadedBase64 = null;
         previewContainer.classList.add("hidden");
+        updateBusinessSuggestions();
 
         renderDenuncias();
     });

@@ -62,5 +62,7 @@
         }
     }
 
-    renderizar();
+    API.ready.then(renderizar).catch(error => {
+        panel.textContent = `No se pudo cargar la base de datos: ${error.message}`;
+    });
 })();

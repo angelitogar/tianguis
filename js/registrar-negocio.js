@@ -9,8 +9,24 @@
     const locationStatus = document.getElementById("locationStatus");
     const formMessage = document.getElementById("formMessage");
     const successMessage = document.getElementById("successMessage");
+    const marketSelect = document.getElementById("marketId");
 
     let posicion = null;
+
+    API.ready.then(() => {
+        API.obtenerTabla("markets").forEach(mercado => {
+            const option = document.createElement("option");
+            option.value = mercado.id;
+            option.textContent = mercado.name;
+            marketSelect.appendChild(option);
+        });
+    }).catch(error => {
+        mostrarMensaje(
+            formMessage,
+            `No se pudieron cargar los mercados: ${error.message}`,
+            true
+        );
+    });
 
     function mostrarMensaje(elemento, texto, esError = false) {
         elemento.textContent = texto;
@@ -55,6 +71,13 @@
         evento.preventDefault();
         formMessage.classList.add("hidden");
         successMessage.classList.add("hidden");
+
+        try {
+            await API.ready;
+        } catch (error) {
+            mostrarMensaje(formMessage, `No se pudieron cargar los datos: ${error.message}`, true);
+            return;
+        }
 
         const dias = [...form.querySelectorAll('input[name="days"]:checked')]
             .map(casilla => casilla.value);
@@ -102,6 +125,9 @@
             const cuentaVendedora = sesion?.role === "vendedor"
                 ? API.normalizarNombreUsuario(sesion.username)
                 : "";
+            const mercadoSeleccionado = API.obtenerTabla("markets").find(
+                mercado => mercado.id === marketSelect.value
+            );
 
             const codigoVinculacion = cuentaVendedora
                 ? ""
@@ -111,6 +137,7 @@
                 id: API.crearId(),
                 name: form.elements.businessName.value.trim(),
                 category: form.elements.category.value,
+                marketId: mercadoSeleccionado?.id || "",
                 location: form.elements.location.value.trim(),
                 days: dias,
                 openingTime: apertura,

@@ -1,154 +1,15 @@
-const SEED_PRODUCTS = [
-    {
-        id: "p1",
-        name: "Playera Bordada Artesanal",
-        category: "Ropa",
-        price: 180,
-        description: "Algodón 100% mexicano bordado a mano. Variedad de tallas.",
-        vendorName: "María Guadalupe Pérez",
-        businessName: "Novedades y Ropa Lupita",
-        tianguis: "Tianguis Sullivan (Cuauhtémoc)",
-        image: "👕",
-        username: "lupita_antojitos"
-    },
-    {
-        id: "p2",
-        name: "Orden de Tacos de Cecina (3 pzs)",
-        category: "Comida preparada",
-        price: 65,
-        description: "Incluye nopales, papas cambray, cebollitas y salsas al gusto.",
-        vendorName: "María Guadalupe Pérez",
-        businessName: "Antojitos Lupita",
-        tianguis: "Tianguis Sullivan (Cuauhtémoc)",
-        image: "🍲",
-        username: "lupita_antojitos"
-    },
-    {
-        id: "p3",
-        name: "Pechuga de Pollo Fresca (Kg)",
-        category: "Carne / Pollo / Pescado crudo",
-        price: 110,
-        description: "Pollo fresco del día, aplanado o en filetes sin costo extra.",
-        vendorName: "Carlos Méndez",
-        businessName: "Pollería El Gallito",
-        tianguis: "Mercado de La Merced (Venustiano Carranza)",
-        image: "🍗",
-        username: "carlos_polleria"
-    },
-    {
-        id: "p4",
-        name: "Aguacate Hass Criollo (Kg)",
-        category: "Fruta / verdura",
-        price: 55,
-        description: "Aguacate suave punto exacto para guacamole.",
-        vendorName: "Pedro Ramírez",
-        businessName: "Frutas y Verduras San Juan",
-        tianguis: "Tianguis Mixcoac (Benito Juárez)",
-        image: "🥑",
-        username: "don_pedro_frutas"
-    },
-    {
-        id: "p5",
-        name: "Carrito Coleccionable Escala 1:64",
-        category: "Juguetes",
-        price: 40,
-        description: "Modelos variados Hot Wheels y Matchbox sellados en blister.",
-        vendorName: "Jorge Luis",
-        businessName: "Juguetes y Coleccionables",
-        tianguis: "Tianguis El Salado (Iztapalapa)",
-        image: "🏎️",
-        username: "jorge_juguetes"
-    },
-    {
-        id: "p6",
-        name: "Queso Oaxaca Artesanal (500g)",
-        category: "Cremería",
-        price: 75,
-        description: "Queso de hebra traído directamente de Tehuacán.",
-        vendorName: "Roberto Gómez",
-        businessName: "Cremería La Crema de la Crema",
-        tianguis: "Tianguis Condesa (Cuauhtémoc)",
-        image: "🧀",
-        username: "cremeria_roberto"
-    },
-    {
-        id: "p7",
-        name: "Pedro Páramo - Juan Rulfo (Edición Usada)",
-        category: "Libros",
-        price: 50,
-        description: "Libro en excelente estado. Clásico de la literatura mexicana.",
-        vendorName: "Ana Belén",
-        businessName: "Libros Usados y Joyas Literarias",
-        tianguis: "Tianguis Condesa (Cuauhtémoc)",
-        image: "📚",
-        username: "ana_libros"
-    },
-    {
-        id: "p8",
-        name: "Perfume Avon Sweet Honesty 50ml",
-        category: "Tiendas de catálogo",
-        price: 120,
-        description: "Producto nuevo y sellado de catálogo Avon.",
-        vendorName: "Socorro Hernández",
-        businessName: "Ventas por Catálogo Soco",
-        tianguis: "Tianguis La Purísima (Iztapalapa)",
-        image: "🧴",
-        username: "soco_catalogos"
-    },
-    {
-        id: "p9",
-        name: "Cargador Carga Rápida USB-C 20W",
-        category: "Electrónica",
-        price: null,
-        description: "Compatible con Android e iPhone. Pregunta por disponibilidad en puesto.",
-        vendorName: "Tech Barrio",
-        businessName: "Novedades Electrónicas",
-        tianguis: "Tianguis Sullivan (Cuauhtémoc)",
-        image: "🔌",
-        username: "tech_barrio"
-    },
-    {
-        id: "p10",
-        name: "Cámara Fotográfica Réflex Vintage 1980",
-        category: "Antigüedad",
-        price: 650,
-        description: "Funcional para coleccionistas o decoración retro.",
-        vendorName: "Don Fernando",
-        businessName: "Antigüedades El Tiempo",
-        tianguis: "Tianguis Mixcoac (Benito Juárez)",
-        image: "📷",
-        username: "fer_antiguedades"
-    },
-    {
-        id: "p11",
-        name: "Bolsas Ecológicas Reutilizables",
-        category: "Otros",
-        price: 25,
-        description: "Resistentes para hacer las compras del tianguis.",
-        vendorName: "María Guadalupe Pérez",
-        businessName: "Antojitos Lupita",
-        tianguis: "Tianguis Sullivan (Cuauhtémoc)",
-        image: "🛍️",
-        username: "lupita_antojitos"
-    }
-];
-
+const API = window.TianguisNegocios;
 let activeCategory = "todos";
 let currentSearchQuery = "";
 let filterOnlyMine = false;
 let uploadedImageBase64 = null;
 
 function getStoredProducts() {
-    const data = localStorage.getItem("tianguis_products");
-    if (!data) {
-        localStorage.setItem("tianguis_products", JSON.stringify(SEED_PRODUCTS));
-        return SEED_PRODUCTS;
-    }
-    return JSON.parse(data);
+    return API.obtenerTabla("products");
 }
 
 function saveProducts(products) {
-    localStorage.setItem("tianguis_products", JSON.stringify(products));
+    API.guardarTabla("products", products);
 }
 
 function getCurrentUser() {
@@ -162,32 +23,31 @@ function agregarAlCarrito(productId) {
     const item = products.find(p => p.id === productId);
     if (!item) return;
 
-    const CART_KEY = "tianguis.listaCompras.v1";
-    let cart = [];
+    const cart = API.obtenerTabla("cartItems");
 
-    try {
-        const raw = localStorage.getItem(CART_KEY);
-        if (raw) cart = JSON.parse(raw);
-    } catch (e) {
-        cart = [];
-    }
-
-    const existing = cart.find(i => !i.comprado && i.nombre.toLowerCase() === item.name.toLowerCase());
+    const existing = cart.find(i =>
+        !i.comprado &&
+        (
+            i.productId === item.id ||
+            (typeof i.nombre === "string" && i.nombre.toLowerCase() === item.name.toLowerCase())
+        )
+    );
 
     if (existing) {
         existing.cantidad += 1;
     } else {
         cart.push({
             id: `${Date.now()}-${Math.random()}`,
+            productId: item.id,
             nombre: item.name,
             cantidad: 1,
-            unidad: "pieza",
+            unidad: item.unit || "pieza",
             comprado: false,
             categoria: item.category || "Otros"
         });
     }
 
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    API.guardarTabla("cartItems", cart);
     window.location.href = "carrito.html";
 }
 
@@ -228,6 +88,13 @@ function renderMenuByRole() {
     }
 }
 
+function getBusinessForProduct(product) {
+    return API.buscarNegocio(product.businessId) || {
+        name: product.businessName || product.vendorName || "Negocio",
+        marketId: product.marketId || ""
+    };
+}
+
 function renderProducts() {
     const products = getStoredProducts();
     const user = getCurrentUser();
@@ -238,10 +105,13 @@ function renderProducts() {
         const matchesCategory = (activeCategory === "todos" || p.category === activeCategory);
         const matchesSearch = !currentSearchQuery || 
             p.name.toLowerCase().includes(currentSearchQuery) || 
-            p.description.toLowerCase().includes(currentSearchQuery) ||
-            p.businessName.toLowerCase().includes(currentSearchQuery);
+            (p.description || "").toLowerCase().includes(currentSearchQuery) ||
+            getBusinessForProduct(p).name.toLowerCase().includes(currentSearchQuery);
         
-        const matchesUser = !filterOnlyMine || (user && p.username === user.username);
+        const matchesUser = !filterOnlyMine || (
+            user &&
+            p.username === API.normalizarNombreUsuario(user.username)
+        );
 
         return matchesCategory && matchesSearch && matchesUser;
     });
@@ -260,6 +130,8 @@ function renderProducts() {
     }
 
     productsGrid.innerHTML = filtered.map(p => {
+        const business = getBusinessForProduct(p);
+        const market = API.obtenerTabla("markets").find(item => item.id === business.marketId);
         const hasCustomImg = p.image && p.image.startsWith("data:image");
         const priceDisplay = (p.price !== null && p.price !== undefined && p.price !== "") 
             ? `$${Number(p.price).toFixed(2)} MXN` 
@@ -268,29 +140,37 @@ function renderProducts() {
         return `
             <article class="product-card">
                 <div class="card-img-wrapper">
-                    <span class="card-category-badge">${p.category}</span>
+                    <span class="card-category-badge">${API.escaparHTML(p.category)}</span>
                     ${hasCustomImg 
-                        ? `<img src="${p.image}" alt="${p.name}">` 
-                        : `<span class="img-placeholder">${p.image || '📦'}</span>`}
+                        ? `<img src="${API.escaparHTML(p.image)}" alt="${API.escaparHTML(p.name)}">`
+                        : `<span class="img-placeholder">${API.escaparHTML(p.image || '📦')}</span>`}
                 </div>
                 <div class="card-body">
-                    <h3 class="card-title">${p.name}</h3>
-                    <p class="card-description">${p.description || 'Sin descripción disponible.'}</p>
+                    <h3 class="card-title">${API.escaparHTML(p.name)}</h3>
+                    <p class="card-description">${API.escaparHTML(p.description || 'Sin descripción disponible.')}</p>
                     <div class="card-vendor-info">
-                        <strong>${p.businessName || p.vendorName}</strong>
-                        📍 ${p.tianguis || 'CDMX'}
+                        <strong>${API.escaparHTML(business.name)}</strong>
+                        📍 ${API.escaparHTML(market?.name || p.tianguis || 'CDMX')}
                     </div>
                 </div>
                 <div class="card-footer">
                     <div class="card-price">${priceDisplay}</div>
-                    <button class="btn-card-action" onclick="agregarAlCarrito('${p.id}')">🛒 Agregar al carrito</button>
+                    <button class="btn-card-action" data-product-id="${API.escaparHTML(p.id)}">🛒 Agregar al carrito</button>
                 </div>
             </article>
         `;
     }).join("");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await API.ready;
+    } catch (error) {
+        document.getElementById("resultsCount").textContent =
+            `No se pudieron cargar los datos: ${error.message}`;
+        return;
+    }
+
     const user = getCurrentUser();
     const vendorPanel = document.getElementById("vendorPanel");
     const vendorStatusBadge = document.getElementById("vendorStatusBadge");
@@ -301,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const imagePreview = document.getElementById("imagePreview");
     const removeImgBtn = document.getElementById("removeImgBtn");
     const categoryPills = document.getElementById("categoryPills");
+    const productsGrid = document.getElementById("productsGrid");
 
     const menuButton = document.getElementById("menuButton");
     const sideMenu = document.getElementById("sideMenu");
@@ -345,6 +226,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    productsGrid.addEventListener("click", event => {
+        const button = event.target.closest("[data-product-id]");
+        if (button) agregarAlCarrito(button.dataset.productId);
+    });
+
     btnOnlyMyProducts.addEventListener("click", () => {
         filterOnlyMine = !filterOnlyMine;
         btnOnlyMyProducts.classList.toggle("active", filterOnlyMine);
@@ -383,17 +269,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const priceVal = document.getElementById("prodPrice").value.trim();
         const description = document.getElementById("prodDescription").value.trim();
 
+        const business = API.obtenerNegocios().find(
+            item => item.ownerUsername === API.normalizarNombreUsuario(user.username)
+        );
+        if (!business) {
+            alert("Registra o vincula tu local antes de publicar productos.");
+            return;
+        }
+
         const newProduct = {
             id: "prod_" + Date.now(),
             name,
             category,
             price: priceVal !== "" ? parseFloat(priceVal) : null,
             description,
+            businessId: business.id,
+            marketId: business.marketId,
             vendorName: user.name,
-            businessName: user.business || user.name,
-            tianguis: user.tianguis || "Tianguis CDMX",
+            businessName: business.name,
             image: uploadedImageBase64 || "🛍️",
-            username: user.username
+            username: API.normalizarNombreUsuario(user.username),
+            unit: "pieza",
+            availability: "disponible",
+            aliases: []
         };
 
         const currentProducts = getStoredProducts();

@@ -86,6 +86,12 @@
         }
     });
 
-    cargarNegocios();
-    renderizarValoraciones();
+    API.ready.then(() => {
+        cargarNegocios();
+        renderizarValoraciones();
+    }).catch(error => {
+        mensaje.textContent = `No se pudieron cargar los datos: ${error.message}`;
+        mensaje.classList.add("error");
+        mensaje.classList.remove("hidden");
+    });
 })();

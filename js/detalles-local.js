@@ -53,6 +53,19 @@
         return sesion;
     }
 
+    function sesionCorrespondeAlPropietario() {
+        try {
+            const sesionActual = leerSesion();
+            return Boolean(
+                sesionActual?.role === "vendedor" &&
+                API.normalizarNombreUsuario(sesionActual.username) ===
+                    API.normalizarNombreUsuario(usuario?.username)
+            );
+        } catch {
+            return false;
+        }
+    }
+
     function seleccionarPunto(evento) {
         const rectangulo = editMap.getBoundingClientRect();
         const x = Math.max(3, Math.min(97, ((evento.clientX - rectangulo.left) / rectangulo.width) * 100));
@@ -185,6 +198,11 @@
         evento.preventDefault();
         claimMessage.classList.add("hidden");
 
+        if (!sesionCorrespondeAlPropietario()) {
+            mensaje(claimMessage, "La sesión cambió. Inicia sesión con tu cuenta para vincular el negocio.", true);
+            return;
+        }
+
         const codigo = document.getElementById("claimCodeInput").value.trim().toUpperCase();
         const negocio = API.obtenerNegocios().find(
             item => !item.ownerUsername && item.claimCode
@@ -219,6 +237,11 @@
     localForm.addEventListener("submit", async evento => {
         evento.preventDefault();
         formMessage.classList.add("hidden");
+
+        if (!sesionCorrespondeAlPropietario()) {
+            mensaje(formMessage, "La sesión ya no corresponde al propietario. Inicia sesión nuevamente.", true);
+            return;
+        }
 
         const dias = [...localForm.querySelectorAll('input[name="days"]:checked')]
             .map(casilla => casilla.value);
@@ -291,5 +314,12 @@
         }
     });
 
-    inicializar();
+    API.ready.then(inicializar).catch(error => {
+        mostrarAcceso(
+            "No se pudieron cargar los datos",
+            `La base de datos no está disponible: ${error.message}`,
+            "Volver al mapa",
+            "index.html"
+        );
+    });
 })();
