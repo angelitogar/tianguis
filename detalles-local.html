@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#176b52">
+    <title>Mi local | Tianguis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/detalles-local.css">
+    <script src="js/detalles-local.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="index.html">Tianguis</a>
+        <nav class="topbar-links" aria-label="Navegación principal">
+            <a href="catalogo.html">Catálogo</a>
+            <a href="index.html">← Volver al mapa</a>
+        </nav>
+    </header>
+
+    <main class="local-container">
+        <section id="accessMessage" class="access-card hidden" role="status" aria-live="polite">
+            <p class="eyebrow">MI LOCAL</p>
+            <h1 id="accessTitle">Inicia sesión para continuar</h1>
+            <p id="accessDescription">Inicia sesión como comerciante para consultar y administrar tu local.</p>
+            <a id="accessLink" class="button button-primary" href="login.html">Iniciar sesión</a>
+        </section>
+
+        <div id="localContent" class="hidden">
+            <section class="page-heading">
+                <div>
+                    <p class="eyebrow">PANEL DEL COMERCIANTE</p>
+                    <h1>Mi local</h1>
+                    <p>Consulta la información de tu negocio y mantenla actualizada.</p>
+                </div>
+                <span class="owner-badge">🔒 Solo tú puedes editar este local</span>
+            </section>
+
+            <p id="pageMessage" class="page-message hidden" role="status" aria-live="polite"></p>
+
+            <div class="local-layout">
+                <section class="local-card local-summary" aria-labelledby="summaryTitle">
+                    <div class="summary-heading">
+                        <div class="store-icon" aria-hidden="true">🏪</div>
+                        <div>
+                            <p class="eyebrow">FICHA DEL NEGOCIO</p>
+                            <h2 id="summaryTitle">Tu negocio</h2>
+                        </div>
+                    </div>
+                    <p id="summaryDescription" class="summary-description"></p>
+                    <dl id="localDetails" class="details-list"></dl>
+                    <div class="summary-actions">
+                        <a class="button button-secondary" href="catalogo.html">Ver catálogo</a>
+                        <a class="button button-secondary" href="valoraciones.html">Mis valoraciones</a>
+                    </div>
+                </section>
+
+                <section class="local-card editor-card" aria-labelledby="editorTitle">
+                    <div class="editor-heading">
+                        <div>
+                            <p class="eyebrow">ADMINISTRACIÓN</p>
+                            <h2 id="editorTitle">Editar información</h2>
+                        </div>
+                        <span class="edit-label">Propietario</span>
+                    </div>
+                    <p class="editor-intro">Los cambios se guardan en este navegador y solo se aplican al local asociado a tu cuenta.</p>
+
+                    <form id="localForm">
+                        <div class="field">
+                            <label for="businessName">Nombre del local <span aria-hidden="true">*</span></label>
+                            <input id="businessName" name="businessName" type="text" maxlength="100" required>
+                        </div>
+
+                        <div class="field-grid">
+                            <div class="field">
+                                <label for="businessType">Tipo de lugar</label>
+                                <select id="businessType" name="businessType">
+                                    <option value="tianguis">Puesto de tianguis</option>
+                                    <option value="mercado">Local de mercado</option>
+                                    <option value="barrio">Negocio de barrio</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="category">Giro</label>
+                                <select id="category" name="category">
+                                    <option value="comida-preparada">Comida preparada</option>
+                                    <option value="ropa">Ropa</option>
+                                    <option value="carne">Carne</option>
+                                    <option value="pollo">Pollo</option>
+                                    <option value="pescado">Pescado</option>
+                                    <option value="frutas-verduras">Fruta y verdura</option>
+                                    <option value="cremeria">Cremería</option>
+                                    <option value="libros">Libros</option>
+                                    <option value="tiendas-catalogo">Tiendas de catálogo</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="marketName">Tianguis o mercado</label>
+                            <input id="marketName" name="marketName" type="text" maxlength="120">
+                        </div>
+
+                        <div class="field">
+                            <label for="description">Descripción</label>
+                            <textarea id="description" name="description" rows="3" maxlength="240"></textarea>
+                            <small>Hasta 240 caracteres.</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="location">Ubicación o referencia</label>
+                            <textarea id="location" name="location" rows="2" maxlength="240" placeholder="Calle, colonia, alcaldía o referencia"></textarea>
+                        </div>
+
+                        <fieldset class="schedule-fieldset">
+                            <legend>Horario de atención</legend>
+                            <div class="week-days">
+                                <label><input type="checkbox" name="days" value="lunes"> Lunes</label>
+                                <label><input type="checkbox" name="days" value="martes"> Martes</label>
+                                <label><input type="checkbox" name="days" value="miércoles"> Miércoles</label>
+                                <label><input type="checkbox" name="days" value="jueves"> Jueves</label>
+                                <label><input type="checkbox" name="days" value="viernes"> Viernes</label>
+                                <label><input type="checkbox" name="days" value="sábado"> Sábado</label>
+                                <label><input type="checkbox" name="days" value="domingo"> Domingo</label>
+                            </div>
+                            <div class="field-grid">
+                                <div class="field">
+                                    <label for="openingTime">Apertura</label>
+                                    <input id="openingTime" name="openingTime" type="time">
+                                </div>
+                                <div class="field">
+                                    <label for="closingTime">Cierre</label>
+                                    <input id="closingTime" name="closingTime" type="time">
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <div class="field-grid">
+                            <div class="field">
+                                <label for="contactMethod">Medio de contacto</label>
+                                <select id="contactMethod" name="contactMethod">
+                                    <option value="">No compartir contacto</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                    <option value="llamada">Llamada telefónica</option>
+                                    <option value="correo">Correo electrónico</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="contact">Dato de contacto</label>
+                                <input id="contact" name="contact" type="text" maxlength="120" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <p id="formMessage" class="form-message hidden" role="alert"></p>
+                        <div class="form-actions">
+                            <button class="button button-primary" type="submit">Guardar cambios</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
