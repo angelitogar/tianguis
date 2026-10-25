@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#176b52">
+    <title>Iniciar Sesión / Registro | Tianguis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/login.css">
+    <script src="js/login.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="index.html">Tianguis</a>
+        <div class="topbar-right">
+            <a href="index.html" class="btn-secondary-link">← Volver al Mapa</a>
+        </div>
+    </header>
+
+    <main class="login-container">
+        <div class="login-card">
+            <div class="card-header">
+                <span class="badge-role" id="roleBadge">Acceso General</span>
+                <h1 id="formTitle">Bienvenido a Tianguis</h1>
+                <p id="formSubtitle">Inicia sesión para gestionar tu negocio o consultar el monitoreo local.</p>
+            </div>
+
+            <div class="tab-buttons" role="tablist">
+                <button class="tab-btn active" id="tabLogin" role="tab" aria-selected="true">Iniciar Sesión</button>
+                <button class="tab-btn" id="tabRegister" role="tab" aria-selected="false">Registrarse</button>
+            </div>
+
+            <!-- Formulario de Login -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginUser">Usuario / Correo</label>
+                    <input type="text" id="loginUser" placeholder="ej. lupita_antojitos o admin_sedeco" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginRole">Tipo de Cuenta</label>
+                    <select id="loginRole" required>
+                        <option value="vendedor">🏪 Comerciante / Vendedor</option>
+                        <option value="admin">🏛️ Autoridad / Gobierno (Admin)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">Ingresar a la Plataforma</button>
+            </form>
+
+            <!-- Formulario de Registro -->
+            <form id="registerForm" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="regRole">Quiero registrarme como:</label>
+                    <select id="regRole" required>
+                        <option value="vendedor">🏪 Comerciante / Vendedor de Tianguis o Mercado</option>
+                        <option value="admin">🏛️ Autoridad (SEDECO / Alcaldía)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="regName">Nombre Completo</label>
+                    <input type="text" id="regName" placeholder="Ej. María Guadalupe Pérez" required>
+                </div>
+
+                <!-- Campo dinámico: Nombre del puesto -->
+                <div class="form-group" id="groupBusinessName">
+                    <label for="regBusiness">Nombre del Puesto / Negocio</label>
+                    <input type="text" id="regBusiness" placeholder="Ej. Antojitos Lupita">
+                </div>
+
+                <!-- Campo dinámico: Selección de Tianguis -->
+                <div class="form-group" id="groupTianguis">
+                    <label for="regTianguis">Selecciona el Tianguis o Mercado donde vendes</label>
+                    <select id="regTianguis">
+                        <option value="" disabled selected>Selecciona una opción...</option>
+                        <option value="Tianguis Sullivan (Cuauhtémoc)">Tianguis Sullivan (Cuauhtémoc)</option>
+                        <option value="Tianguis Condesa (Cuauhtémoc)">Tianguis Condesa (Cuauhtémoc)</option>
+                        <option value="Tianguis El Salado (Iztapalapa)">Tianguis El Salado (Iztapalapa)</option>
+                        <option value="Tianguis La Purísima (Iztapalapa)">Tianguis La Purísima (Iztapalapa)</option>
+                        <option value="Tianguis Mixcoac (Benito Juárez)">Tianguis Mixcoac (Benito Juárez)</option>
+                        <option value="Mercado de La Merced (Venustiano Carranza)">Mercado de La Merced (Venustiano Carranza)</option>
+                        <option value="Mercado San Juan (Cuauhtémoc)">Mercado San Juan (Cuauhtémoc)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="regUser">Nombre de Usuario</label>
+                    <input type="text" id="regUser" placeholder="Crea un usuario único" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Contraseña</label>
+                    <input type="password" id="regPassword" placeholder="Crea una contraseña segura" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Crear Cuenta</button>
+            </form>
+
+            <div id="authAlert" class="auth-alert hidden" role="alert"></div>
+
+            <div class="demo-quick-access">
+                <span>⚡ Accesos rápidos de prueba:</span>
+                <div class="demo-buttons">
+                    <button type="button" class="btn-demo" id="demoAdminBtn">🏛️ Modo Autoridad</button>
+                    <button type="button" class="btn-demo" id="demoVendorBtn">🏪 Modo Vendedor</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

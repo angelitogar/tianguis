@@ -1,6 +1,6 @@
-
 const menuButton = document.getElementById("menuButton");
 const sideMenu = document.getElementById("sideMenu");
+const dynamicNavLinks = document.getElementById("dynamicNavLinks");
 const mobileSearchButton = document.getElementById("mobileSearchButton");
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
@@ -11,6 +11,47 @@ const filterButtons = [...document.querySelectorAll(".filter-button")];
 
 let activeCategory = "todos";
 let zoom = 1;
+
+// Configurar enlaces del menú según el rol de sesión
+function renderMenuByRole() {
+    if (!dynamicNavLinks) return;
+
+    const sessionRaw = localStorage.getItem("tianguis_session");
+    const user = sessionRaw ? JSON.parse(sessionRaw) : null;
+
+    let html = `<a href="index.html">⌂ &nbsp; Inicio / Mapa</a>`;
+    html += `<a href="catalogo.html">▦ &nbsp; Catálogo</a>`;
+    html += `<a href="carrito.html">🛒 &nbsp; Mi carrito</a>`;
+
+    if (!user) {
+        // Usuario visitante (Público general)
+        html += `<a href="qa.html">? &nbsp; Preguntas frecuentes</a>`;
+        html += `<a href="login.html" style="font-weight: bold; color: var(--primary);">🔑 &nbsp; Iniciar sesión / Registro</a>`;
+    } else if (user.role === "vendedor") {
+        // Vendedor logueado
+        html += `<a href="detalles-local.html">🏪 &nbsp; Mi Local (${user.business})</a>`;
+        html += `<a href="valoraciones.html">★ &nbsp; Mis Valoraciones</a>`;
+        html += `<a href="qa.html">? &nbsp; Preguntas frecuentes</a>`;
+        html += `<a href="#" id="logoutBtn" style="color: #c5221f;">🚪 &nbsp; Cerrar Sesión (${user.name})</a>`;
+    } else if (user.role === "admin") {
+        // Autoridad logueada
+        html += `<a href="insights.html">▥ &nbsp; Monitoreo Insights (SEDECO)</a>`;
+        html += `<a href="valoraciones.html">★ &nbsp; Reportes y Valoraciones</a>`;
+        html += `<a href="qa.html">? &nbsp; Preguntas frecuentes</a>`;
+        html += `<a href="#" id="logoutBtn" style="color: #c5221f;">🚪 &nbsp; Cerrar Sesión (${user.name})</a>`;
+    }
+
+    dynamicNavLinks.innerHTML = html;
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.removeItem("tianguis_session");
+            window.location.reload();
+        });
+    }
+}
 
 function toggleMenu(force) {
     const shouldOpen = typeof force === "boolean"
@@ -26,7 +67,6 @@ menuButton.addEventListener("click", () => toggleMenu());
 
 mobileSearchButton.addEventListener("click", () => {
     searchForm.classList.toggle("mobile-open");
-
     if (searchForm.classList.contains("mobile-open")) {
         searchInput.focus();
     }
@@ -40,18 +80,12 @@ function updateMarkers() {
         const name = marker.dataset.name.toLocaleLowerCase("es");
         const category = marker.dataset.category;
 
-        const matchesCategory =
-            activeCategory === "todos" || category === activeCategory;
-
+        const matchesCategory = activeCategory === "todos" || category === activeCategory;
         const matchesSearch = !query || name.includes(query);
         const visible = matchesCategory && matchesSearch;
 
         marker.classList.toggle("hidden", !visible);
-
-        if (!visible) {
-            marker.classList.remove("selected");
-        }
-
+        if (!visible) marker.classList.remove("selected");
         if (visible) visibleCount++;
     });
 
@@ -64,45 +98,25 @@ function updateMarkers() {
             ? `${visibleCount} negocio(s) en esta categoría`
             : "Aún no hay negocios en esta categoría.";
     } else {
-        mapMessage.textContent =
-            "Explora los negocios de tu comunidad";
+        mapMessage.textContent = "Explora los negocios de tu comunidad";
     }
 }
 
 filterButtons.forEach(button => {
     button.addEventListener("click", () => {
         activeCategory = button.dataset.filter;
-
         filterButtons.forEach(filter => {
             const selected = filter === button;
             filter.classList.toggle("active", selected);
             filter.setAttribute("aria-pressed", String(selected));
         });
-
         updateMarkers();
     });
 });
 
 searchForm.addEventListener("submit", event => {
     event.preventDefault();
-
-    const query = searchInput.value.trim().toLocaleLowerCase("es");
-
-    // Primero busca negocios de ejemplo.
     updateMarkers();
-
-    // Si la búsqueda coincide con una sección, abre el menú.
-    const matchingLink = [...sideMenu.querySelectorAll("a")].find(link =>
-        link.textContent.toLocaleLowerCase("es").includes(query)
-    );
-
-    if (query && matchingLink && !markers.some(marker =>
-        marker.dataset.name.toLocaleLowerCase("es").includes(query)
-    )) {
-        toggleMenu(true);
-        mapMessage.textContent =
-            `Puedes acceder a "${matchingLink.textContent.trim()}" desde el menú.`;
-    }
 });
 
 searchInput.addEventListener("input", updateMarkers);
@@ -111,29 +125,23 @@ markers.forEach(marker => {
     marker.addEventListener("click", () => {
         markers.forEach(item => item.classList.remove("selected"));
         marker.classList.add("selected");
-
-        mapMessage.textContent =
-            `${marker.dataset.name} · Categoría: ${marker.dataset.category}`;
+        mapMessage.textContent = `${marker.dataset.name} · Categoría: ${marker.dataset.category}`;
     });
 });
 
 document.getElementById("zoomIn").addEventListener("click", () => {
     zoom = Math.min(zoom + 0.2, 2.2);
     mapOverlay.style.transform = `scale(${zoom})`;
-    mapMessage.textContent = `Zoom de prueba: ${Math.round(zoom * 100)}%`;
 });
 
 document.getElementById("zoomOut").addEventListener("click", () => {
     zoom = Math.max(zoom - 0.2, 0.6);
     mapOverlay.style.transform = `scale(${zoom})`;
-    mapMessage.textContent = `Zoom de prueba: ${Math.round(zoom * 100)}%`;
 });
 
 document.getElementById("locateButton").addEventListener("click", () => {
     zoom = 1;
     mapOverlay.style.transform = "scale(1)";
-    mapMessage.textContent =
-        "Vista de prueba restablecida. No se ha usado tu ubicación real.";
 });
 
 document.addEventListener("click", event => {
@@ -146,5 +154,8 @@ document.addEventListener("click", event => {
     }
 });
 
-// Estado inicial.
-updateMarkers();
+// Inicializar vista del menú y marcadores al cargar
+document.addEventListener("DOMContentLoaded", () => {
+    renderMenuByRole();
+    updateMarkers();
+});
