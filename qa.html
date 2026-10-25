@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#176b52">
+    <title>Preguntas frecuentes | Tianguis</title>
+
+    <!-- Se reutilizan los estilos generales del proyecto. -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/qa.css">
+
+    <!-- Este archivo permite buscar y filtrar las preguntas. -->
+    <script src="js/qa.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="index.html">Tianguis</a>
+
+        <div class="qa-header-actions">
+            <a href="index.html">Volver al mapa</a>
+        </div>
+    </header>
+
+    <main class="qa-container">
+        <section class="qa-intro" aria-labelledby="tituloPreguntas">
+            <p class="qa-etiqueta">AYUDA</p>
+            <h1 id="tituloPreguntas">Preguntas frecuentes</h1>
+            <p>
+                Respuestas de ejemplo para conocer las funciones de Tianguis.
+            </p>
+        </section>
+
+        <section class="qa-tools" aria-label="Buscar preguntas">
+            <div class="qa-field">
+                <label for="buscarPregunta">Buscar una pregunta</label>
+                <input
+                    id="buscarPregunta"
+                    type="search"
+                    placeholder="Ej. horarios, contacto o ubicación"
+                    autocomplete="off">
+            </div>
+
+            <div class="qa-field">
+                <label for="filtroPreguntas">Filtrar por tema</label>
+                <select id="filtroPreguntas">
+                    <option value="todos">Todos los temas</option>
+                    <option value="uso">Uso de la página</option>
+                    <option value="registro">Registro de negocios</option>
+                    <option value="informacion">Información y privacidad</option>
+                </select>
+            </div>
+
+            <button id="limpiarBusqueda" class="qa-clear-button" type="button">
+                Limpiar búsqueda
+            </button>
+        </section>
+
+        <p id="estadoPreguntas" class="qa-status" role="status" aria-live="polite"></p>
+
+        <section id="listaPreguntas" class="qa-list" aria-label="Respuestas">
+            <details class="qa-item" data-categoria="uso">
+                <summary>¿Qué puedo encontrar en Tianguis?</summary>
+                <div class="qa-answer">
+                    <p>
+                        La idea de Tianguis es ayudar a encontrar mercados,
+                        tianguis y negocios de barrio, junto con los productos
+                        y horarios que reportan.
+                    </p>
+                </div>
+            </details>
+
+            <details class="qa-item" data-categoria="uso">
+                <summary>¿Cómo busco un producto o negocio?</summary>
+                <div class="qa-answer">
+                    <p>
+                        Puedes escribir el nombre del producto o negocio en el
+                        buscador de la página principal. La búsqueda y los
+                        resultados disponibles dependen de la información
+                        cargada en el prototipo.
+                    </p>
+                </div>
+            </details>
+
+            <details class="qa-item" data-categoria="informacion">
+                <summary>¿Los horarios y productos están garantizados?</summary>
+                <div class="qa-answer">
+                    <p>
+                        No. La información puede estar desactualizada y una
+                        oferta reportada no garantiza que el producto siga
+                        disponible cuando llegues. Confirma los detalles con
+                        el negocio cuando sea posible.
+                    </p>
+                </div>
+            </details>
+
+            <details class="qa-item" data-categoria="registro">
+                <summary>¿Necesito una cuenta para registrar un negocio?</summary>
+                <div class="qa-answer">
+                    <p>
+                        No. El formulario de registro puede llenarse sin iniciar
+                        sesión. En esta versión de demostración, los registros
+                        se guardan en el navegador donde se envía el formulario.
+                    </p>
+                </div>
+            </details>
+
+            <details class="qa-item" data-categoria="registro">
+                <summary>¿Qué información necesito para registrar mi negocio?</summary>
+                <div class="qa-answer">
+                    <p>
+                        El nombre, tipo, categoría, ubicación escrita y horario
+                        son obligatorios. La descripción, el contacto, la
+                        información de estacionamiento y las fotos son
+                        opcionales.
+                    </p>
+                </div>
+            </details>
+
+            <details class="qa-item" data-categoria="registro">
+                <summary>¿Tengo que compartir mi teléfono o correo?</summary>
+                <div class="qa-answer">
+                    <p>
+                        No. El contacto es opcional. Si decides agregarlo,
+                        debes elegir un medio y autorizar que se muestre.
+                    </p>
+                </div>
+            </details>
+
+            <details class="qa-item" data-categoria="informacion">
+                <summary>¿Qué significan los datos de saturación y estacionamiento?</summary>
+                <div class="qa-answer">
+                    <p>
+                        Son datos opcionales que comparte quien registra el
+                        negocio. No representan una medición en tiempo real,
+                        así que pueden cambiar.
+                    </p>
+                </div>
+            </details>
+
+            <details class="qa-item" data-categoria="informacion">
+                <summary>¿Otras personas pueden ver el negocio que registré?</summary>
+                <div class="qa-answer">
+                    <p>
+                        En el prototipo actual, el registro queda guardado en el
+                        navegador donde llenaste el formulario. Para que otras
+                        personas lo vean, hace falta conectar la página a un
+                        servidor compartido.
+                    </p>
+                </div>
+            </details>
+
+            <p id="sinResultados" class="qa-empty" hidden>
+                No se encontraron preguntas con esos criterios.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

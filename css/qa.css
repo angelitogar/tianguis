@@ -1,0 +1,210 @@
+/* Permite desplazar la página aunque los estilos generales lo desactiven. */
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    height: auto;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+/* Encabezado de la sección de preguntas. */
+.qa-header-actions {
+    margin-left: auto;
+}
+
+.qa-header-actions a {
+    padding: 9px 13px;
+    color: var(--primary, #176b52);
+    background: var(--primary-light, #e5f4ed);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.qa-header-actions a:hover {
+    background: #d4ebd9;
+}
+
+/* Contenedor principal. */
+.qa-container {
+    width: min(100% - 32px, 850px);
+    min-height: calc(100vh - 76px);
+    margin: 0 auto;
+    padding: 36px 0 60px;
+}
+
+.qa-intro {
+    margin-bottom: 26px;
+}
+
+.qa-etiqueta {
+    margin: 0 0 7px;
+    color: var(--primary, #176b52);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+}
+
+.qa-intro h1 {
+    margin: 0 0 9px;
+    color: var(--text, #202b27);
+    font-size: 30px;
+}
+
+.qa-intro > p:last-child {
+    color: var(--muted, #68756f);
+    line-height: 1.5;
+}
+
+/* Buscador y filtro de preguntas. */
+.qa-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 230px) auto;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e5eae7);
+    border-radius: 12px;
+}
+
+.qa-field {
+    display: grid;
+    gap: 7px;
+}
+
+.qa-field label {
+    color: var(--text, #202b27);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.qa-field input,
+.qa-field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 11px;
+    color: var(--text, #202b27);
+    background: #ffffff;
+    border: 1px solid var(--border, #e5eae7);
+    border-radius: 8px;
+    font: inherit;
+}
+
+.qa-clear-button {
+    min-height: 42px;
+    padding: 9px 12px;
+    color: var(--primary, #176b52);
+    background: var(--primary-light, #e5f4ed);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 650;
+}
+
+.qa-clear-button:hover {
+    background: #d4ebd9;
+}
+
+.qa-status {
+    min-height: 20px;
+    color: var(--muted, #68756f);
+    font-size: 13px;
+}
+
+/* Lista de preguntas desplegables. */
+.qa-list {
+    display: grid;
+    gap: 10px;
+}
+
+.qa-item {
+    overflow: hidden;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e5eae7);
+    border-radius: 11px;
+}
+
+.qa-item[open] {
+    border-color: var(--primary, #176b52);
+}
+
+.qa-item summary {
+    position: relative;
+    padding: 17px 48px 17px 18px;
+    color: var(--text, #202b27);
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1.45;
+    list-style: none;
+}
+
+.qa-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.qa-item summary::after {
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    color: var(--primary, #176b52);
+    content: "+";
+    font-size: 23px;
+    font-weight: 500;
+    transform: translateY(-50%);
+}
+
+.qa-item[open] summary::after {
+    content: "−";
+}
+
+.qa-item summary:focus-visible,
+.qa-clear-button:focus-visible,
+.qa-field input:focus-visible,
+.qa-field select:focus-visible,
+.qa-header-actions a:focus-visible {
+    outline: 3px solid #b86d17;
+    outline-offset: 3px;
+}
+
+.qa-answer {
+    padding: 0 18px 16px;
+    color: var(--muted, #68756f);
+    line-height: 1.6;
+}
+
+.qa-answer p {
+    margin: 0;
+}
+
+.qa-empty {
+    margin: 12px 0;
+    padding: 18px;
+    color: var(--muted, #68756f);
+    background: var(--surface, #ffffff);
+    border-radius: 10px;
+}
+
+.qa-empty[hidden] {
+    display: none;
+}
+
+/* Ordena los controles en pantallas estrechas. */
+@media (max-width: 650px) {
+    .qa-container {
+        width: min(100% - 22px, 850px);
+        padding-top: 24px;
+    }
+
+    .qa-tools {
+        grid-template-columns: 1fr;
+    }
+
+    .qa-clear-button {
+        width: 100%;
+    }
+}
