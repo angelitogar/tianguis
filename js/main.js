@@ -1,6 +1,6 @@
 /*
- * Controla el menú, la búsqueda y los marcadores de la página principal.
- * También construye los enlaces del menú según la sesión local.
+- Controla el menú, la búsqueda y los marcadores de la página principal.
+- También construye los enlaces del menú según la sesión local.
  */
 
 const menuButton = document.getElementById("menuButton");
@@ -18,8 +18,8 @@ let activeCategory = "todos";
 let zoom = 1;
 
 /*
- * Construye los enlaces comunes y los enlaces específicos del rol.
- * El registro de negocio se muestra siempre, incluso sin iniciar sesión.
+- Construye los enlaces comunes y los enlaces específicos del rol.
+- El registro de negocio y la denuncia ciudadana se muestran siempre.
  */
 function renderMenuByRole() {
     if (!dynamicNavLinks) return;
@@ -38,6 +38,7 @@ function renderMenuByRole() {
     html += `<a href="catalogo.html">▦ &nbsp; Catálogo</a>`;
     html += `<a href="carrito.html">🛒 &nbsp; Mi carrito</a>`;
     html += `<a href="registrar-negocio.html">＋ &nbsp; Registrar mi negocio</a>`;
+    html += `<a href="denuncias.html" style="color: #c5221f; font-weight: 600;">🚨 &nbsp; Denuncia Ciudadana</a>`;
 
     if (!user) {
         html += `<a href="qa.html">? &nbsp; Preguntas frecuentes</a>`;
@@ -68,7 +69,7 @@ function renderMenuByRole() {
 }
 
 /*
- * Abre o cierra el menú lateral y actualiza su estado accesible.
+- Abre o cierra el menú lateral y actualiza su estado accesible.
  */
 function toggleMenu(force) {
     const shouldOpen = typeof force === "boolean"
@@ -83,7 +84,7 @@ function toggleMenu(force) {
 menuButton.addEventListener("click", () => toggleMenu());
 
 /*
- * Muestra el buscador cuando se activa el botón para pantallas estrechas.
+- Muestra el buscador cuando se activa el botón para pantallas estrechas.
  */
 mobileSearchButton.addEventListener("click", () => {
     searchForm.classList.toggle("mobile-open");
@@ -94,7 +95,7 @@ mobileSearchButton.addEventListener("click", () => {
 });
 
 /*
- * Filtra los marcadores según el texto y la categoría seleccionados.
+- Filtra los marcadores según el texto y la categoría seleccionados.
  */
 function updateMarkers() {
     const query = searchInput.value.trim().toLocaleLowerCase("es");

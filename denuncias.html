@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#176b52">
+    <title>Denuncia Ciudadana | Tianguis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/denuncias.css">
+    <script src="js/denuncias.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <button class="icon-button" id="menuButton" aria-label="Abrir menú" aria-expanded="false">
+            <span class="hamburger">☰</span>
+        </button>
+
+        <a class="brand" href="index.html">Tianguis</a>
+
+        <div class="topbar-right">
+            <a href="index.html" class="btn-secondary-link">← Volver al Mapa</a>
+        </div>
+    </header>
+
+    <aside class="side-menu" id="sideMenu" aria-hidden="true">
+        <div class="menu-heading">Explora Tianguis</div>
+        <div id="dynamicNavLinks"></div>
+    </aside>
+
+    <main class="denuncia-container">
+        <!-- Encabezado de la Sección -->
+        <section class="denuncia-header">
+            <span class="badge-sedeco">🏛️ Atención y Monitoreo SEDECO / Alcaldía</span>
+            <h1>Módulo de Denuncia y Reporte Ciudadano</h1>
+            <p>Reporta irregularidades, abusos de precios, problemas sanitarios o falta de permisos en tianguis y mercados públicos de la CDMX.</p>
+        </section>
+
+        <!-- Formulario Principal -->
+        <section class="denuncia-card">
+            <form id="denunciaForm" class="denuncia-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="tipoDenuncia">Motivo / Tipo de Denuncia *</label>
+                        <select id="tipoDenuncia" required>
+                            <option value="" disabled selected>Selecciona el motivo...</option>
+                            <option value="Precios alterados / Cobro indebido">💰 Precios alterados / Cobro indebido</option>
+                            <option value="Falta de higiene o alimentos en mal estado">☣️ Falta de higiene / Alimentos en mal estado</option>
+                            <option value="Abuso o invasión de espacio público">🚧 Invasión de espacio público / Pasillos bloqueados</option>
+                            <option value="Venta de productos prohibidos o irregulares">⚠️ Productos prohibidos o de dudosa procedencia</option>
+                            <option value="Mal trato / Inseguridad">📢 Mal trato, agresión o altercado</option>
+                            <option value="Otro">📦 Otro motivo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tianguisObj">Tianguis o Mercado Público *</label>
+                        <select id="tianguisObj" required>
+                            <option value="" disabled selected>Selecciona la ubicación...</option>
+                            <option value="Tianguis Sullivan (Cuauhtémoc)">Tianguis Sullivan (Cuauhtémoc)</option>
+                            <option value="Tianguis Condesa (Cuauhtémoc)">Tianguis Condesa (Cuauhtémoc)</option>
+                            <option value="Tianguis El Salado (Iztapalapa)">Tianguis El Salado (Iztapalapa)</option>
+                            <option value="Tianguis La Purísima (Iztapalapa)">Tianguis La Purísima (Iztapalapa)</option>
+                            <option value="Tianguis Mixcoac (Benito Juárez)">Tianguis Mixcoac (Benito Juárez)</option>
+                            <option value="Mercado de La Merced (Venustiano Carranza)">Mercado de La Merced (Venustiano Carranza)</option>
+                            <option value="Mercado San Juan (Cuauhtémoc)">Mercado San Juan (Cuauhtémoc)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombrePuesto">Nombre del Puesto o Vendedor <span class="optional-tag">(Opcional)</span></label>
+                        <input type="text" id="nombrePuesto" placeholder="Ej. Puesto de ropa verde / Antojitos Lupita">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fechaIncidente">Fecha y Hora del Incidente *</label>
+                        <input type="datetime-local" id="fechaIncidente" required>
+                    </div>
+
+                    <div class="form-group span-2">
+                        <label for="descripcion">Descripción detallada de la situación *</label>
+                        <textarea id="descripcion" rows="4" placeholder="Explica lo sucedido con el mayor detalle posible (precios cobrados, ubicación del puesto, personas involucradas...)" required></textarea>
+                    </div>
+
+                    <!-- Carga de Fotografía o Comprobante -->
+                    <div class="form-group span-2">
+                        <label for="evidenciaFoto">Fotografía o Evidencia <span class="optional-tag">(Opcional)</span></label>
+                        <input type="file" id="evidenciaFoto" accept="image/*">
+                        <div id="previewContainer" class="preview-container hidden">
+                            <img id="imgPreview" src="" alt="Vista previa de evidencia">
+                            <button type="button" id="btnRemoveImg" class="btn-remove">✕ Eliminar foto</button>
+                        </div>
+                    </div>
+
+                    <!-- Datos del Denunciante (Anonimato opcional) -->
+                    <div class="form-group">
+                        <label for="nombreDenunciante">Tu Nombre <span class="optional-tag">(Dejar en blanco para Denuncia Anónima)</span></label>
+                        <input type="text" id="nombreDenunciante" placeholder="Ej. Juan Pérez (Opcional)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactoDenunciante">Teléfono o Correo de contacto <span class="optional-tag">(Opcional)</span></label>
+                        <input type="text" id="contactoDenunciante" placeholder="Ej. 5512345678 / usuario@email.com">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary-denuncia">🚨 Registrar y Enviar Denuncia</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Historial y Gestión de Denuncias -->
+        <section class="denuncias-list-section">
+            <div class="list-header">
+                <h2>📋 Denuncias Registradas en el Sistema</h2>
+                <button type="button" id="btnExportJSON" class="btn-export-json">📥 Descargar Archivo (denuncias.json)</button>
+            </div>
+            <div id="denunciasGrid" class="denuncias-grid">
+                <!-- Carga dinámica vía js/denuncias.js -->
+            </div>
+        </section>
+    </main>
+</body>
+</html>
